@@ -27,7 +27,7 @@ const AppRoutes: React.FC = () => {
       {/* ✅ Aquí UserLayout envuelve las páginas del usuario */}
       <Route path="/user" element={<UserLayout />}>
         <Route index element={<Home />} />
-        <Route path="home" element={<Home />} />
+        
         <Route path="userInfo" element={<AppUser />} />
           <Route path="pago" element={<Pago />} />
       </Route>

@@ -1,20 +1,20 @@
-import AppBar from '@mui/material/AppBar';
-import Avatar from '@mui/material/Avatar';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import InputBase from '@mui/material/InputBase';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import { alpha, styled } from '@mui/material/styles';
-import React, { useState } from 'react';
-
 import { keyframes } from '@emotion/react'; // ✅ Para animaciones personalizadas
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import SearchIcon from '@mui/icons-material/Search';
+import AppBar from '@mui/material/AppBar';
+import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Grow from '@mui/material/Grow'; // ✅ Para animación de aparición
+import InputBase from '@mui/material/InputBase';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import { alpha, styled } from '@mui/material/styles';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Logo from '../../../assets/logo.svg';
 import FilterPopover from '../../layouts/FilterPopover';
 import UserPanel from '../../layouts/UserPanel';
@@ -113,23 +113,24 @@ export default function MenuBar() {
           gap: 15,
           transition: 'gap 0.3s ease' 
         }}>
-          <Box sx={{
-            transition: 'transform 0.3s ease',
-            '&:hover': { transform: 'scale(1.05) rotate(-2deg)' }
-          }}>
-            <a href="home">
-            <img 
-              src={Logo} 
-              alt="Logo" 
-              style={{ 
-                height: 92,
-                filter: 'drop-shadow(0 2px 4px rgba(16, 185, 129, 0.3))' // ✅ Sombra verde sutil
-              }} 
-              
-            />
-            </a>
-          </Box>
-
+          <Box
+  sx={{
+    transition: 'transform 0.3s ease',
+    '&:hover': { transform: 'scale(1.05) rotate(-2deg)' },
+  }}
+>
+  <Link to="/user/" style={{ display: 'inline-block' }}>
+    <img
+      src={Logo}
+      alt="Logo"
+      style={{
+        height: 92,
+        filter: 'drop-shadow(0 2px 4px rgba(16, 185, 129, 0.3))',
+        transition: 'opacity 0.3s ease',
+      }}
+    />
+  </Link>
+</Box>
           <Search>
             <SearchIconWrapper sx={{
               transform: activeFilter ? 'scale(1.1)' : 'scale(1)'

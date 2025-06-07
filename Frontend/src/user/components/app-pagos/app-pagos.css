@@ -28,7 +28,7 @@
 .card-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 30px;
+  margin-bottom: 80px;
 }
 
 .payment-form {
@@ -154,7 +154,7 @@ input:focus {
 
 .flip-card-front {
   background: linear-gradient(135deg, #1a1a1a, #333333);
-  padding: 20px;
+  padding: 30px;
 }
 
 .flip-card-back {
