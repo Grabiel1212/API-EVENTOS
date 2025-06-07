@@ -1,0 +1,304 @@
+.app-pagos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  padding: 30px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.title {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.card-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.payment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+input {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+input:focus {
+  border-color: #4e54c8;
+  box-shadow: 0 0 0 3px rgba(78, 84, 200, 0.2);
+  outline: none;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.expiry-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.expiry-row input {
+  width: 50px;
+  text-align: center;
+}
+
+.expiry-row span {
+  font-size: 20px;
+  font-weight: bold;
+  color: #666;
+}
+
+.pay-button {
+  background: linear-gradient(to right, #4e54c8, #8f94fb);
+  color: white;
+  border: none;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.pay-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(78, 84, 200, 0.4);
+}
+
+.pay-button:active {
+  transform: translateY(0);
+}
+
+.error {
+  color: #e74c3c;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+/* Estilos para la tarjeta animada */
+.flip-card {
+  background-color: transparent;
+  width: 300px;
+  height: 190px;
+  perspective: 1000px;
+  color: white;
+  cursor: pointer;
+}
+
+.flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+}
+
+.flip-card-front, .flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+}
+
+.flip-card-front {
+  background: linear-gradient(135deg, #1a1a1a, #333333);
+  padding: 20px;
+}
+
+.flip-card-back {
+  background: linear-gradient(135deg, #2c2c2c, #444444);
+  transform: rotateY(180deg);
+  padding: 20px;
+}
+
+.heading_8264 {
+  position: absolute;
+  letter-spacing: 0.2em;
+  font-size: 0.8em;
+  top: 1em;
+  right: 1.5em;
+  font-weight: 600;
+  color: #ff9800;
+}
+
+.logo {
+  position: absolute;
+  top: 5em;
+  right: 1.5em;
+}
+
+.chip {
+  position: absolute;
+  top: 3em;
+  left: 1.5em;
+}
+
+.contactless {
+  position: absolute;
+  top: 4.5em;
+  left: 11.5em;
+}
+
+.number {
+  position: absolute;
+  font-weight: bold;
+  font-size: 1.1em;
+  top: 7.5em;
+  left: 1.5em;
+  letter-spacing: 1px;
+}
+
+.valid_thru {
+  position: absolute;
+  font-weight: bold;
+  top: 12.5em;
+  font-size: 0.6em;
+  left: 11em;
+  color: #aaa;
+}
+
+.date_8264 {
+  position: absolute;
+  font-weight: bold;
+  font-size: 1em;
+  top: 12.3em;
+  left: 14.5em;
+}
+
+.name {
+  position: absolute;
+  font-weight: bold;
+  font-size: 0.9em;
+  top: 14em;
+  left: 1.5em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.strip {
+  position: absolute;
+  background-color: black;
+  width: 100%;
+  height: 2em;
+  top: 2.5em;
+  left: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    #303030,
+    #303030 10px,
+    #202020 10px,
+    #202020 20px
+  );
+}
+
+.mstrip {
+  position: absolute;
+  background-color: rgb(255, 255, 255);
+  width: 10em;
+  height: 1.2em;
+  top: 5.5em;
+  left: 2em;
+  border-radius: 2.5px;
+}
+
+.sstrip {
+  position: absolute;
+  background-color: rgb(255, 255, 255);
+  width: 5em;
+  height: 1.2em;
+  top: 5.5em;
+  left: 15em;
+  border-radius: 2.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.code {
+  font-weight: bold;
+  text-align: center;
+  margin: 0;
+  color: black;
+  font-size: 0.8em;
+  letter-spacing: 3px;
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 20px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .flip-card {
+    width: 280px;
+    height: 180px;
+  }
+  
+  .contactless {
+    left: 10.5em;
+  }
+  
+  .date_8264 {
+    left: 13.5em;
+  }
+  
+  .sstrip {
+    left: 14em;
+  }
+}

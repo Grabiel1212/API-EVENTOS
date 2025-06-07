@@ -91,11 +91,15 @@ export default function MenuBar() {
   };
 
   return (
-    <AppBar position="static" sx={{ 
-      backgroundColor: '#111827', 
-      boxShadow: 'none',
-      backgroundImage: 'linear-gradient(to bottom, #1a202c, #111827)' // ✅ Degradado sutil
-    }}>
+    <AppBar 
+  position="fixed" 
+  sx={{ 
+    backgroundColor: '#111827', 
+    boxShadow: 'none',
+    backgroundImage: 'linear-gradient(to bottom, #1a202c, #111827)'
+  }}
+>
+
       <Toolbar sx={{ 
         justifyContent: 'space-between', 
         px: 2,
@@ -113,6 +117,7 @@ export default function MenuBar() {
             transition: 'transform 0.3s ease',
             '&:hover': { transform: 'scale(1.05) rotate(-2deg)' }
           }}>
+            <a href="home">
             <img 
               src={Logo} 
               alt="Logo" 
@@ -120,7 +125,9 @@ export default function MenuBar() {
                 height: 92,
                 filter: 'drop-shadow(0 2px 4px rgba(16, 185, 129, 0.3))' // ✅ Sombra verde sutil
               }} 
+              
             />
+            </a>
           </Box>
 
           <Search>

@@ -2,6 +2,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Divider, ListItemIcon, ListItemText, MenuItem, MenuList, Paper } from '@mui/material';
+import { Link } from 'react-router-dom';
 
 interface UserPanelProps {
   anchorEl: HTMLElement | null;
@@ -33,7 +34,12 @@ export default function UserPanel({ anchorEl, open, onClose, onLogout }: UserPan
           <ListItemIcon>
             <AccountCircleIcon />
           </ListItemIcon>
-          <ListItemText>Mi perfil</ListItemText>
+         
+<ListItemText>
+  <Link to="userinfo" style={{ textDecoration: 'none', color: 'inherit' }}>
+    Mi perfil
+  </Link>
+</ListItemText>
         </MenuItem>
 
         <MenuItem onClick={onClose}>
