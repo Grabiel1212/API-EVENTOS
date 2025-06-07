@@ -34,19 +34,22 @@ export default function UserPanel({ anchorEl, open, onClose, onLogout }: UserPan
           <ListItemIcon>
             <AccountCircleIcon />
           </ListItemIcon>
-         
-<ListItemText>
-  <Link to="userinfo" style={{ textDecoration: 'none', color: 'inherit' }}>
-    Mi perfil
-  </Link>
-</ListItemText>
+
+          <ListItemText>
+            <Link to="userinfo" style={{ textDecoration: 'none', color: 'inherit' }}>
+              Mi perfil
+            </Link>
+          </ListItemText>
         </MenuItem>
 
         <MenuItem onClick={onClose}>
           <ListItemIcon>
             <ConfirmationNumberIcon />
           </ListItemIcon>
-          <ListItemText>Mis entradas</ListItemText>
+          <ListItemText>
+            <Link to="entradas" style={{ textDecoration: 'none', color: 'inherit' }}>
+              Mis entradas
+            </Link></ListItemText>
         </MenuItem>
 
         <Divider />

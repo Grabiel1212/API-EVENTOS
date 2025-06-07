@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import AdminHome from '../administration/components/home/home';
 import { useAuth } from '../hooks/useAuth';
 
+import Entradas from '../user/components/app-entradas/app-entradas';
 import Pago from '../user/components/app-pagos/app-pagos';
 import AppUser from '../user/components/app-user/app-user';
 import Home from '../user/components/home/home';
@@ -29,7 +30,8 @@ const AppRoutes: React.FC = () => {
         <Route index element={<Home />} />
         
         <Route path="userInfo" element={<AppUser />} />
-          <Route path="pago" element={<Pago />} />
+        <Route path="pago" element={<Pago />} />
+         <Route path="entradas" element={<Entradas />} />
       </Route>
 
       {/* Admin */}
