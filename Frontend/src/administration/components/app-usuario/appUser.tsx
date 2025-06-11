@@ -3,28 +3,33 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import {
-    Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
-    IconButton, Paper, Stack, Table, TableBody, TableCell, TableContainer,
-    TableHead, TableRow, TextField, Typography
+  Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  IconButton, Paper, Stack, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, TextField, Typography
 } from '@mui/material';
 import { useState } from 'react';
 
 interface User {
   id: number;
-  name: string;
+  nombre: string;
+  apellido: string;
   email: string;
+  foto_perfil: string;
+  contraseña: string;
+  rol: string;
 }
 
 export default function UserApp() {
+
   const [users, setUsers] = useState<User[]>([
-    { id: 1, name: 'Juan Pérez', email: 'juan@example.com' },
-    { id: 2, name: 'Caroline Smith', email: 'caroline@example.com' },
+    { id: 1, nombre: 'Juan', apellido: 'Perez', email: 'juliobq@gmail.com', foto_perfil: '1', contraseña: '123', rol: '1' },
+    { id: 2, nombre: 'Caroline', apellido: 'Perez', email: 'caroline@gmail.com', foto_perfil: '2', contraseña: '1234', rol: '1' },
   ]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const handleOpenDialog = (user?: User) => {
-    setCurrentUser(user ?? { id: Date.now(), name: '', email: '' });
+    setCurrentUser(user ?? { id: 0, nombre: '', apellido: '', email: '', foto_perfil: '', contraseña: '', rol: '' });
     setDialogOpen(true);
   };
 
@@ -39,7 +44,7 @@ export default function UserApp() {
       const exists = prev.some((u) => u.id === currentUser.id);
       return exists
         ? prev.map((u) => (u.id === currentUser.id ? currentUser : u))
-        : [...prev, currentUser];
+        : [...prev, { ...currentUser, id: prev.length ? Math.max(...prev.map(u => u.id)) + 1 : 1 }];
     });
     handleCloseDialog();
   };
@@ -50,32 +55,41 @@ export default function UserApp() {
 
   return (
     <Box sx={{ py: 4, px: 2 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Usuarios</Typography>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" fontWeight="bold">Gestión de Usuarios</Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>
           Agregar usuario
         </Button>
       </Stack>
 
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} elevation={4} sx={{ borderRadius: 3, overflow: 'hidden' }}>
         <Table>
-          <TableHead>
+          <TableHead 
+  >
             <TableRow>
-              <TableCell>Nombre</TableCell>
-              <TableCell>Correo</TableCell>
-              <TableCell align="right">Acciones</TableCell>
+              <TableCell><strong>Nombre</strong></TableCell>
+              <TableCell><strong>Apellido</strong></TableCell>
+              <TableCell><strong>Email</strong></TableCell>
+              <TableCell><strong>Foto Perfil</strong></TableCell>
+              <TableCell><strong>Contraseña</strong></TableCell>
+              <TableCell><strong>Rol</strong></TableCell>
+              <TableCell align="right"><strong>Acciones</strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {users.map((user) => (
               <TableRow key={user.id}>
-                <TableCell>{user.name}</TableCell>
+                <TableCell>{user.nombre}</TableCell>
+                <TableCell>{user.apellido}</TableCell>
                 <TableCell>{user.email}</TableCell>
+                <TableCell>{user.foto_perfil}</TableCell>
+                <TableCell>{user.contraseña}</TableCell>
+                <TableCell>{user.rol}</TableCell>
                 <TableCell align="right">
-                  <IconButton onClick={() => handleOpenDialog(user)}>
+                  <IconButton onClick={() => handleOpenDialog(user)} color="primary">
                     <EditIcon />
                   </IconButton>
-                  <IconButton color="error" onClick={() => handleDelete(user.id)}>
+                  <IconButton onClick={() => handleDelete(user.id)} color="error">
                     <DeleteIcon />
                   </IconButton>
                 </TableCell>
@@ -83,7 +97,9 @@ export default function UserApp() {
             ))}
             {users.length === 0 && (
               <TableRow>
-                <TableCell colSpan={3} align="center">No hay usuarios registrados.</TableCell>
+                <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                  <Typography variant="body1" color="text.secondary">No hay usuarios registrados.</Typography>
+                </TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -97,18 +113,49 @@ export default function UserApp() {
             <TextField
               label="Nombre"
               fullWidth
-              value={currentUser?.name ?? ''}
-              onChange={(e) => setCurrentUser((prev) => prev && { ...prev, name: e.target.value })}
+              variant="outlined"
+              value={currentUser?.nombre ?? ''}
+              onChange={(e) => setCurrentUser((prev) => prev && { ...prev, nombre: e.target.value })}
             />
             <TextField
-              label="Correo"
+              label="Apellido"
               fullWidth
+              variant="outlined"
+              value={currentUser?.apellido ?? ''}
+              onChange={(e) => setCurrentUser((prev) => prev && { ...prev, apellido: e.target.value })}
+            />
+            <TextField
+              label="Email"
+              fullWidth
+              variant="outlined"
               value={currentUser?.email ?? ''}
               onChange={(e) => setCurrentUser((prev) => prev && { ...prev, email: e.target.value })}
             />
+            <TextField
+              label="Foto Perfil"
+              fullWidth
+              variant="outlined"
+              value={currentUser?.foto_perfil ?? ''}
+              onChange={(e) => setCurrentUser((prev) => prev && { ...prev, foto_perfil: e.target.value })}
+            />
+            <TextField
+              label="Contraseña"
+              fullWidth
+              variant="outlined"
+              type="password"
+              value={currentUser?.contraseña ?? ''}
+              onChange={(e) => setCurrentUser((prev) => prev && { ...prev, contraseña: e.target.value })}
+            />
+            <TextField
+              label="Rol"
+              fullWidth
+              variant="outlined"
+              value={currentUser?.rol ?? ''}
+              onChange={(e) => setCurrentUser((prev) => prev && { ...prev, rol: e.target.value })}
+            />
           </Stack>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={handleCloseDialog}>Cancelar</Button>
           <Button onClick={handleSave} variant="contained">Guardar</Button>
         </DialogActions>
