@@ -162,6 +162,7 @@ export function AppMenu({
             toolbarActions: ToolbarActionsSearch,
             sidebarFooter: SidebarFooter,
           }}
+          
           sidebarProps={{
             sx: {
               '& .MuiListItemButton-root': {
