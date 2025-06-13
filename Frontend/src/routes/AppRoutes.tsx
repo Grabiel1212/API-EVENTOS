@@ -23,7 +23,7 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to={role === "admin" ? "/admin/home" : "/user"} replace />} />
+      <Route path="/" element={<Navigate to={role === "admin" ? "/login" : "/user"} replace />} />
 
       {/* Rutas usuario */}
       <Route path="/user" element={<UserLayout />}>
