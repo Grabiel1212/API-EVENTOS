@@ -5,6 +5,11 @@ import UserTablePage from '../administration/components/app-usuario/appUser';
 import HomeAdmin from '../administration/components/home/home';
 import AdminLayout from '../administration/layouts/AdminLayout';
 import { useAuth } from '../hooks/useAuth';
+import CategoriaTablaPage from '../administration/components/app-categoria/app-categoria'
+import EventoTablaPage from '../administration/components/app-eventos/app-eventos'
+import PagosTablaPage from '../administration/components/app-pagos/app-pagos'
+import RegistrosTablaPage from '../administration/components/app-registros/app-registros'
+
 
 import Entradas from '../user/components/app-entradas/app-entradas';
 import Pago from '../user/components/app-pagos/app-pagos';
@@ -33,6 +38,10 @@ const AppRoutes: React.FC = () => {
         <Route index element={<Navigate to="home" replace />} />
         <Route path="home" element={<HomeAdmin />} />
         <Route path="usuarios" element={<UserTablePage />} />
+        <Route path="categorias" element={<CategoriaTablaPage/>} />
+        <Route path="eventos" element={<EventoTablaPage/>} />
+        <Route path="pagos" element={<PagosTablaPage/>} />
+        <Route path="registros" element={<RegistrosTablaPage/>} />
       </Route>
 
       <Route path="*" element={<div>404 Página no encontrada</div>} />

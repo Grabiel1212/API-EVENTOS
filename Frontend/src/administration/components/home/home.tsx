@@ -191,14 +191,14 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, icon, col
       >
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Box>
-            <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+            <Typography variant="subtitle2" color="#000000" gutterBottom>
               {title}
             </Typography>
-            <Typography variant="h4" fontWeight={700} mb={1} color="text.primary">
+            <Typography variant="h4" fontWeight={700} mb={1} color="#000000">
               {value}
             </Typography>
             {description && (
-              <Typography variant="body2" color="textSecondary" mb={1}>
+              <Typography variant="body2" color="#000000" mb={1}>
                 {description}
               </Typography>
             )}
@@ -215,7 +215,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, icon, col
               >
                 {isPositive ? '+' : ''}{change}%
               </Typography>
-              <Typography variant="body2" color="textSecondary" ml={0.5}>
+              <Typography variant="body2" color="#000000" ml={0.5}>
                 vs mes anterior
               </Typography>
             </Box>
@@ -295,15 +295,15 @@ const EventCard: React.FC<{ event: EventType }> = ({ event }) => {
             {getEventIcon()}
           </Avatar>
           <Box>
-            <Typography variant="h6" fontWeight={600}>{event.title}</Typography>
-            <Typography variant="body2" color="textSecondary">
+            <Typography variant="h6" fontWeight={600} color="#000000">{event.title}</Typography>
+            <Typography variant="body2" color="#000000">
               {event.date} • {event.venue}
             </Typography>
           </Box>
         </Box>
         
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-          <Typography variant="body2">
+          <Typography variant="body2" color="#000000">
             <Box component="span" fontWeight={500} color={getEventColor()}>
               {event.ticketsSold.toLocaleString()}
             </Box> / {event.capacity.toLocaleString()} entradas
@@ -339,10 +339,10 @@ const EventCard: React.FC<{ event: EventType }> = ({ event }) => {
         </Box>
         
         <Box display="flex" justifyContent="space-between">
-          <Typography variant="body2" color="textSecondary">
+          <Typography variant="body2" color="#000000">
             Recaudación:
           </Typography>
-          <Typography variant="body1" fontWeight={600}>
+          <Typography variant="body1" fontWeight={600} color="#000000">
             ${event.revenue.toLocaleString()}
           </Typography>
         </Box>
@@ -368,7 +368,7 @@ const RecentActivity: React.FC = () => {
       background: 'linear-gradient(to bottom, #ffffff, #fafbff)',
       boxShadow: '0px 10px 25px rgba(0, 0, 0, 0.05)'
     }}>
-      <Typography variant="h6" fontWeight={700} mb={2} color="primary">
+      <Typography variant="h6" fontWeight={700} mb={2} color="#000000">
         Actividad Reciente
       </Typography>
       <Box>
@@ -411,7 +411,7 @@ const RecentActivity: React.FC = () => {
                 <PersonIcon fontSize="small" />
               </Box>
               <Box flex={1}>
-                <Typography variant="body1" mb={0.5}>
+                <Typography variant="body1" mb={0.5} color="#000000">
                   <Box component="span" fontWeight={600}>{activity.user}</Box> {activity.action}{' '}
                   {activity.event && (
                     <Box component="span" fontWeight={600} color={COLORS.primary}>
@@ -429,7 +429,7 @@ const RecentActivity: React.FC = () => {
                       mr: 1 
                     }} 
                   />
-                  <Typography variant="body2" color="textSecondary">
+                  <Typography variant="body2" color="#000000">
                     {activity.time}
                   </Typography>
                 </Box>
@@ -504,7 +504,7 @@ const DashboardHome: React.FC = () => {
       }}>
         <Box display="flex" alignItems="center">
           <EventIcon sx={{ mr: 1.5, color: 'white' }} />
-          <Typography variant="h6" fontWeight={700}>
+          <Typography variant="h6" fontWeight={700} color="#000000">
             EventMaster Dashboard
           </Typography>
         </Box>
@@ -616,10 +616,13 @@ const DashboardHome: React.FC = () => {
               background: 'linear-gradient(to bottom, #ffffff, #fafbff)',
               boxShadow: '0px 10px 25px rgba(0, 0, 0, 0.05)'
             }}>
+              
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6" fontWeight={700}>
+
+                <Typography variant="h6" color='#000000' fontWeight={700}>
                   Ingresos Mensuales
                 </Typography>
+
                 <Button variant="outlined" size="small" color="primary">
                   Ver Reporte
                 </Button>
@@ -683,7 +686,7 @@ const DashboardHome: React.FC = () => {
               background: 'linear-gradient(to bottom, #ffffff, #fafbff)',
               boxShadow: '0px 10px 25px rgba(0, 0, 0, 0.05)'
             }}>
-              <Typography variant="h6" fontWeight={700} mb={2}>
+              <Typography variant="h6" fontWeight={700} mb={2} color="#000000">
                 Distribución por Tipo de Evento
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
@@ -700,7 +703,7 @@ const DashboardHome: React.FC = () => {
                     animationDuration={1500}
                     label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                   >
-                    {eventTypeData.map((entry, index) => (
+                    {eventTypeData.map((_entry, index) => (
                       <Cell 
                         key={`cell-${index}`} 
                         fill={eventColors[index % eventColors.length]} 
@@ -716,7 +719,7 @@ const DashboardHome: React.FC = () => {
                     }}
                   />
                   <Legend 
-                    formatter={(value, entry, index) => (
+                    formatter={(value, _entry, index) => (
                       <span style={{ color: eventColors[index], fontWeight: 500 }}>
                         {value}
                       </span>
@@ -743,7 +746,7 @@ const DashboardHome: React.FC = () => {
               boxShadow: '0px 10px 25px rgba(0, 0, 0, 0.05)'
             }}>
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6" fontWeight={700}>
+                <Typography variant="h6" fontWeight={700} color="#000000">
                   Eventos Activos
                 </Typography>
                 <Chip label={`${activeEvents.length} eventos`} color="primary" size="small" />
@@ -789,7 +792,7 @@ const DashboardHome: React.FC = () => {
                 background: 'linear-gradient(to bottom, #ffffff, #fafbff)',
                 boxShadow: '0px 10px 25px rgba(0, 0, 0, 0.05)'
               }}>
-                <Typography variant="h6" fontWeight={700} mb={2}>
+                <Typography variant="h6" fontWeight={700} mb={2} color="#000000">
                   Asistencia Diaria
                 </Typography>
                 <ResponsiveContainer width="100%" height={250}>
@@ -812,7 +815,7 @@ const DashboardHome: React.FC = () => {
                       animationDuration={1500}
                       radius={[4, 4, 0, 0]}
                     >
-                      {attendanceData.map((entry, index) => (
+                      {attendanceData.map((_entry, index) => (
                         <motion.rect
                           key={`bar-${index}`}
                           initial={{ height: 0 }}
@@ -831,7 +834,7 @@ const DashboardHome: React.FC = () => {
       
       {/* Footer */}
       <Box mt={4} textAlign="center">
-        <Typography variant="body2" color="textSecondary">
+        <Typography variant="body2" color="#000000">
           © 2023 EventMaster Dashboard - Gestión profesional de eventos
         </Typography>
       </Box>

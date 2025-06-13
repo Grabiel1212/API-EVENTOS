@@ -1,6 +1,9 @@
 // src/components/MenuLayoutConstants.ts
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import EventIcon from '@mui/icons-material/Event';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import CategoryIcon from '@mui/icons-material/Category';
 import HomeIcon from '@mui/icons-material/Home';
 import PeopleIcon from '@mui/icons-material/People';
@@ -12,8 +15,12 @@ export const NAVIGATION: Navigation = [
   { segment: 'admin/home', title: 'Inicio', icon: <HomeIcon /> },
   { segment: 'admin/usuarios', title: 'Usuarios', icon: <PeopleIcon /> },
   { segment: 'admin/administrador', title: 'Administrador', icon: <AdminPanelSettingsIcon /> },
+  { segment: 'admin/eventos', title: 'Eventos', icon: <EventIcon/>},
   { segment: 'admin/categorias', title: 'Categorías', icon: <CategoryIcon /> },
+  { segment: 'admin/pagos', title:'Pagos', icon:<CreditCardIcon/>},
+  { segment: 'admin/registros', title:'Registros', icon:<PersonAddAltIcon/>},
   { segment: 'admin/reportes', title: 'Reportes', icon: <BarChartIcon /> },
+
 ];
 
 export const demoTheme = createTheme({

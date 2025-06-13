@@ -11,3 +11,7 @@ html, body {
     margin-top: 0 !important;
 
 }
+[data-toolpad-color-scheme="dark"] {
+  --mui-palette-text-primary: #e0e0e0;
+  --mui-palette-text-secondary: #bbbbbb;
+}
