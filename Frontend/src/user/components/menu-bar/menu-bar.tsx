@@ -1,4 +1,4 @@
-import { keyframes } from '@emotion/react'; // ✅ Para animaciones personalizadas
+import { keyframes } from '@emotion/react';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
@@ -8,7 +8,7 @@ import AppBar from '@mui/material/AppBar';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Grow from '@mui/material/Grow'; // ✅ Para animación de aparición
+import Grow from '@mui/material/Grow';
 import InputBase from '@mui/material/InputBase';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -92,14 +92,13 @@ export default function MenuBar() {
 
   return (
     <AppBar 
-  position="fixed" 
-  sx={{ 
-    backgroundColor: '#111827', 
-    boxShadow: 'none',
-    backgroundImage: 'linear-gradient(to bottom, #1a202c, #111827)'
-  }}
->
-
+      position="fixed" 
+      sx={{ 
+        backgroundColor: '#111827', 
+        boxShadow: 'none',
+        backgroundImage: 'linear-gradient(to bottom, #1a202c, #111827)'
+      }}
+    >
       <Toolbar sx={{ 
         justifyContent: 'space-between', 
         px: 2,
@@ -114,23 +113,23 @@ export default function MenuBar() {
           transition: 'gap 0.3s ease' 
         }}>
           <Box
-  sx={{
-    transition: 'transform 0.3s ease',
-    '&:hover': { transform: 'scale(1.05) rotate(-2deg)' },
-  }}
->
-  <Link to="/user/" style={{ display: 'inline-block' }}>
-    <img
-      src={Logo}
-      alt="Logo"
-      style={{
-        height: 92,
-        filter: 'drop-shadow(0 2px 4px rgba(16, 185, 129, 0.3))',
-        transition: 'opacity 0.3s ease',
-      }}
-    />
-  </Link>
-</Box>
+            sx={{
+              transition: 'transform 0.3s ease',
+              '&:hover': { transform: 'scale(1.05) rotate(-2deg)' },
+            }}
+          >
+            <Link to="/user/" style={{ display: 'inline-block' }}>
+              <img
+                src={Logo}
+                alt="Logo"
+                style={{
+                  height: 92,
+                  filter: 'drop-shadow(0 2px 4px rgba(16, 185, 129, 0.3))',
+                  transition: 'opacity 0.3s ease',
+                }}
+              />
+            </Link>
+          </Box>
           <Search>
             <SearchIconWrapper sx={{
               transform: activeFilter ? 'scale(1.1)' : 'scale(1)'
@@ -196,10 +195,12 @@ export default function MenuBar() {
         }}>
           {!isLoggedIn ? (
             <>
+              {/* Botón de Iniciar Sesión con Link */}
               <Button 
+                component={Link}
+                to="login"
                 variant="contained" 
-                color="success" 
-                onClick={handleLogin}
+                color="success"
                 sx={{
                   transition: 'all 0.3s ease',
                   boxShadow: '0 4px 6px rgba(16, 185, 129, 0.2)',
@@ -211,7 +212,11 @@ export default function MenuBar() {
               >
                 Iniciar sesión
               </Button>
+              
+              {/* Botón de Registrarse con Link */}
               <Button 
+                component={Link}
+                to="registro"
                 variant="outlined" 
                 color="success"
                 sx={{

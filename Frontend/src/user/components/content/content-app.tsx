@@ -54,7 +54,7 @@ const ContentApp = () => {
     if (!isLoggedIn) {
       setOpenLoginModal(true);
     } else {
-      navigate('pago');
+      navigate('compra');
     }
   };
 
