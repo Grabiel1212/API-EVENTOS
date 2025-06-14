@@ -1,18 +1,38 @@
+import express, { Application } from "express";
+import Env from './config/env';
+import UsuarioRoutes from './router/usuario.routes';
 
-//Configurar  CONEXION A LA BASE DE DATOS y otras cosas de los SERVICIOS
-import express, { Application } from 'express';
-import usuarioRoutes from './routes/usuario.route';
-import { API_PREFIX } from './shared/constans';
 
-const app: Application = express();
+export class App {
 
-// Middleware para parsear JSON
-app.use(express.json());
+ public app : Application; // instanciamos el exprees
 
-// Registrar rutas con prefijo /api/v1 o similar
-app.use(`${API_PREFIX}/usuarios`, usuarioRoutes);
 
-export default app;
+ // inicializamos la Clase App
+ constructor(){
+    this.app = express();
+    this.middlewares();
+    this.routes();
+ }
 
-//(backticks ``) son para interpolar variables en cadenas de texto
-//En teclados en inglés (US layout): Generalmente está a la izquierda del número 1, encima de la tecla Tab.
+ // Registra los middlewares necesarios para la aplicación.
+ private middlewares () : void {
+     this.app.use(express.json());
+ }
+
+ //Registra los middlewares necesarios para la aplicación.
+ private routes() : void {
+  this.app.use(`${Env.API_PREFIX}/user` , UsuarioRoutes);// para usuarios
+  this.app.use(`${Env.API_PREFIX}/admin` , UsuarioRoutes); // para administradores
+ }
+
+
+ //esto nos ayudara a instaciar nuestar clase App e inicilizar en otros TS
+ public getApp() :Application {
+    return this.app;
+ }
+
+
+}
+
+export default App;
