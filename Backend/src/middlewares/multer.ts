@@ -1,8 +1,7 @@
-// src/utils/multer.ts
-import multer from 'multer';
+// src/middlewares/multer.ts
 import { Request } from 'express';
+import multer from 'multer';
 
-// Usamos memoria porque luego subiremos a Cloudinary
 const storage = multer.memoryStorage();
 
 const fileFilter = (

@@ -1,97 +1,32 @@
 import { Request, Response } from 'express';
-import { Users } from '../model/users';
-import { UserService } from '../services/userService';
-import { unlinkSync } from 'fs';
-import { logger } from '../utils/logger';
+import { logger } from '../helpers/logger'; // Logger personalizado
+import { userSchema } from '../middlewares/user.validation'; // Validación Joi
+import UserService from '../services/user/index'; // Servicio de usuarios
 
-
-type SafeUser = Omit<Users, 'password'>;
-
-export const UserController = {
+class UserController {
+  // Crear un nuevo usuario
   async createUser(req: Request, res: Response): Promise<void> {
-    const { file, body: userData } = req;
-    
     try {
-      if (!userData.email || (!userData.password && !userData.googleID)) {
-        UserController.cleanupFile(file);
-        res.status(400).json({ 
-          success: false,
-          error: 'Email y contraseña o Google ID son requeridos' 
-        });
+      const fileBuffer = req.file?.buffer; // Foto recibida (si existe)
+
+      // Validar datos de entrada con Joi
+      const { error, value } = userSchema.validate(req.body);
+      if (error) {
+        res.status(400).json({ error: error.details[0].message }); // Error de validación
         return;
       }
 
-      // Asegurar el tipo Users
-      const user: Users = await UserService.createUser(userData, file);
-      UserController.cleanupFile(file);
+      // Crear usuario con el servicio
+      const user = await UserService.create(value, fileBuffer);
 
-      const responseUser: SafeUser = {
-        id: user.id,
-        name: user.name,
-        lastname: user.lastname,
-        photo: user.photo,
-        email: user.email,
-        googleID: user.googleID,
-        active: user.active,   // es opcional, pero se maneja como booleano
-        rol: user.rol,
-        dateCreate: user.dateCreate
-      };
-
-      res.status(201).json({
-        success: true,
-        message: 'Usuario creado correctamente',
-        user: responseUser
-      });
-
-    } catch (error: any) {
-      UserController.handleError(error, req.file, res);
+      // Respuesta exitosa
+      res.status(201).json({ message: 'Usuario creado correctamente', user });
+    } catch (err: any) {
+      // Log y manejo de errores
+      logger.error('Error al crear usuario:', err.message);
+      res.status(500).json({ error: err.message });
     }
-  },
-
-  async getAllUsers(_req: Request, res: Response): Promise<void> {
-    try {
-      // Asegurar el tipo Users[]
-      const users: Users[] = await UserService.getAllUsers();
-      
-      // Tipado explícito en el callback
-      const safeUsers = users.map((user: Users) => {
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
-      });
-      
-      res.status(200).json({
-        success: true,
-        data: safeUsers
-      });
-
-    } catch (error: any) {
-      logger.error('Error en getAllUsers:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno al obtener usuarios'
-      });
-    }
-  },
-
-  cleanupFile(file?: Express.Multer.File): void {
-    if (file?.path) {
-      try {
-        unlinkSync(file.path);
-      } catch (error) {
-        logger.error('Error al limpiar archivo temporal:', error);
-      }
-    }
-  },
-
-  handleError(error: any, file: Express.Multer.File | undefined, res: Response): void {
-    UserController.cleanupFile(file);
-    
-    const statusCode = error.message.includes('existente') ? 409 : 400;
-    res.status(statusCode).json({
-      success: false,
-      error: error.message
-    });
   }
-};
+}
 
-export default UserController;
+export default new UserController(); // Exportar instancia del controlador
