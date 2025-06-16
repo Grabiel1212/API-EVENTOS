@@ -16,9 +16,9 @@ class UserService implements userInterface {
     return updateUser(user, buffer);                 // Actualizar datos de usuario
   }
 
-  async delete(id: number): Promise<void> {
-    return deleteUser(id);                           // Eliminación lógica (estado = false)
-  }
+async delete(id: number): Promise<void> {
+  await deleteUser(id); // esta función debe retornar void
+}
 
   async updateStatus(id: number, status: boolean): Promise<void> {
     return updateUserStatus(id, status);             // Activar o desactivar usuario
