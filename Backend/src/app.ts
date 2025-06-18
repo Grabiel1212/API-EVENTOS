@@ -23,7 +23,7 @@ export class App {
  //Registra los middlewares necesarios para la aplicación.
  private routes() : void {
   this.app.use(`${Env.API_PREFIX}/user` , UsuarioRoutes);// para usuarios
-  this.app.use(`${Env.API_PREFIX}/cloudinari` , UsuarioRoutes); // para administradores
+ 
  }
 
 

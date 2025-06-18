@@ -1,5 +1,5 @@
-import { Users } from '../../model/users';
 import { PrismaClient } from '../../generated/prisma';
+import { Users } from '../../model/users';
 const prisma = new PrismaClient();
 
 
@@ -58,7 +58,8 @@ export async function listInactiveUsers(): Promise<Users[]> {
  */
 export async function listUsersByRole(role: 'ADMIN' | 'USUARIO'): Promise<Users[]> {
   const users = await prisma.usuarios.findMany({
-    where: { rol: role }
+    where: { rol: role , activo : true},
+    
   });
 
   return users.map(user => ({

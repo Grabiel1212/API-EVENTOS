@@ -22,9 +22,10 @@ export async function updateUserStatus(id: number, status: boolean): Promise<voi
     throw new Error('Usuario no encontrado');
   }
 
-  if (user.activo && !status && user.rol !== 'ADMIN') {
-    throw new Error('Solo usuarios con rol ADMIN pueden desactivar usuarios');
-  }
+  // ❌ Eliminamos esta validación:
+  // if (user.activo && !status && user.rol !== 'ADMIN') {
+  //   throw new Error('Solo usuarios con rol ADMIN pueden desactivar usuarios');
+  // }
 
   await prisma.usuarios.update({
     where: { id_usuario: BigInt(id) },

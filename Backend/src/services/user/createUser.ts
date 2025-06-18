@@ -80,8 +80,11 @@ function validateRegistrationMethod(user: Users): void {
 /// Procesa la imagen, subiéndola a Cloudinary (opcional)
 async function processPhoto(buffer?: Buffer, name?: string): Promise<string | null> {
   if (!buffer || !name) return null;
-  return uploadToCloudinary(buffer, `${Date.now()}-${name}`);
+
+  const { url } = await uploadToCloudinary(buffer, `${Date.now()}-${name}`);
+  return url;
 }
+
 
 /// Hashea la contraseña (si se proporciona)
 async function hashPassword(password: string | null): Promise<string | null> {

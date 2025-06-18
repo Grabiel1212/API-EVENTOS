@@ -7,15 +7,16 @@ import { listActiveUsers, listInactiveUsers, listUsersByRole } from './listarUse
 import { updateUserStatus } from './updateStatus';
 import { updateUser } from './updateUser';
 
+
 class UserService implements userInterface {
   async create(user: Users, buffer?: Buffer): Promise<Users> {
     return createUser(user, buffer);                 // Crear usuario (con o sin foto)
   }
 
-  async update(user: Users, buffer?: Buffer): Promise<Users> {
-    return updateUser(user, buffer);                 // Actualizar datos de usuario
+async update(id: number, data: Partial<Users>, buffer?: Buffer): Promise<Users> {
+    return updateUser(id, data, buffer);
   }
-
+  
 async delete(id: number): Promise<void> {
   await deleteUser(id); // esta función debe retornar void
 }
@@ -39,6 +40,8 @@ async delete(id: number): Promise<void> {
   async listByRole(role: 'ADMIN' | 'USUARIO'): Promise<Users[]> {
     return listUsersByRole(role);                    // Listar usuarios por rol
   }
+
+  
 }
 
-export default new UserService(); // Exporta instancia Singleton
+export default new UserService();

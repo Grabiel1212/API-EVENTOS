@@ -1,110 +1,90 @@
-import { Users } from '../../model/users';
 import { PrismaClient } from '../../generated/prisma';
-import cloudinary from '../../config/cloudinary';
+import { Users } from '../../model/users';
+import {
+  deletePhotoFromCloudinary,
+  extractPublicId,
+  uploadToCloudinary
+} from '../cloudinary/cloudinaryService';
+
 const prisma = new PrismaClient();
 
 /**
- * Actualiza la información de un usuario.
- * 
- * ### Reglas de negocio:
- * - El usuario debe existir y estar activo.
- * - Los usuarios autenticados con Google **no pueden** cambiar su correo ni su Google ID.
- * - Solo los usuarios con rol `ADMIN` pueden modificar el correo electrónico.
- * - Solo los `ADMIN` pueden asignar un Google ID si el usuario no lo tenía previamente.
- * - Si se proporciona una imagen (`buffer`), se sube a Cloudinary y se actualiza la URL.
- * 
- * @param {Users} user - Objeto con los nuevos datos del usuario a actualizar.
- * @param {Buffer} [buffer] - Imagen de perfil opcional (como buffer) para subir a Cloudinary.
- * @returns {Promise<Users>} - El usuario actualizado con los campos formateados.
- * 
- * @throws {Error} Si el usuario no existe o está inactivo.
- * @throws {Error} Si se viola alguna de las restricciones para usuarios Google o no ADMIN.
+ * Procesa una nueva imagen y elimina la anterior si es necesario.
  */
-export async function updateUser(user: Users, buffer?: Buffer): Promise<Users> {
-  // Buscar usuario actual en la base de datos
+async function processPhoto(
+  buffer?: Buffer,
+  name?: string | null,
+  previousUrl?: string | null
+): Promise<string | null> {
+  if (!buffer || !name) return previousUrl ?? null;
+
+  if (previousUrl) {
+    const publicId = extractPublicId(previousUrl);
+    if (publicId) {
+      console.log('Eliminando imagen anterior de Cloudinary:', publicId);
+      await deletePhotoFromCloudinary(publicId);
+    }
+  }
+
+  const filename = `${Date.now()}-${name}`;
+  const { url } = await uploadToCloudinary(buffer, filename);
+  return url;
+}
+
+/**
+ * Actualiza SOLO nombre, apellido, correo y foto.
+ */
+export async function updateUser(
+  id: number,
+  data: Partial<Users>,
+  buffer?: Buffer
+): Promise<Users> {
   const existingUser = await prisma.usuarios.findUnique({
-    where: { id_usuario: BigInt(user.id) }
+    where: { id_usuario: BigInt(id) },
   });
 
-  if (!existingUser) {
-    throw new Error('Usuario no encontrado');
-  }
-
+  // Validación de existencia y estado activo
+  if (!existingUser) throw new Error('Usuario no encontrado');
   if (!existingUser.activo) {
-    throw new Error('Usuario inactivo. No se puede actualizar.');
+    throw new Error('No se pueden actualizar los datos de un usuario inactivo');
   }
 
-  // Reglas para usuarios autenticados con Google
-  const isGoogleUser = !!existingUser.google_id;
-  if (isGoogleUser) {
-    if (
-      user.email && user.email !== existingUser.correo ||
-      user.googleID && user.googleID !== existingUser.google_id
-    ) {
-      throw new Error('Usuarios autenticados con Google no pueden modificar su correo ni su Google ID');
-    }
+  // Verificación de campos no permitidos
+  if ('password' in data || 'active' in data || 'rol' in data || 'googleID' in data) {
+    throw new Error('Solo se permite actualizar nombre, apellido, correo y foto');
   }
 
-  // Reglas para cambio de correo: solo ADMIN puede
-  if (
-    user.email &&
-    user.email !== existingUser.correo &&
-    existingUser.rol !== 'ADMIN'
-  ) {
-    throw new Error('Solo usuarios con rol ADMIN pueden modificar el correo');
-  }
-
-  // Preparar campos actualizables
-  const updateFields: any = {
-    nombre: user.name ?? existingUser.nombre,
-    apellidos: user.lastname ?? existingUser.apellidos,
-    foto_perfil: user.photo ?? existingUser.foto_perfil,
-    correo: user.email ?? existingUser.correo,
-    contrasena: user.password ? user.password : existingUser.contrasena,
-    activo: user.active !== undefined ? user.active : existingUser.activo,
-    rol: user.rol === 'ADMIN' ? 'ADMIN' : 'USUARIO'
-  };
-
-  // ADMIN puede actualizar el correo
-  if (user.email && existingUser.rol === 'ADMIN') {
-    updateFields.correo = user.email;
-  }
-
-  // ADMIN puede asignar Google ID si no tenía uno
-  if (user.googleID && !existingUser.google_id && existingUser.rol === 'ADMIN') {
-    updateFields.google_id = user.googleID;
-  }
-
-  // Manejo de imagen con Cloudinary
-  if (buffer) {
-    if (existingUser.foto_perfil) {
-      const publicId = existingUser.foto_perfil;
-      if (publicId) {
-        await cloudinary.uploader.destroy(publicId);
-      }
+  // Validar actualización de correo (solo ADMIN y que no exista)
+  if (data.email && data.email !== existingUser.correo) {
+    if (existingUser.rol !== 'ADMIN') {
+      throw new Error('Solo los administradores pueden actualizar el correo');
     }
 
-    const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        { folder: 'usuarios' },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result as any);
-        }
-      );
-      stream.end(buffer);
+    const emailInUse = await prisma.usuarios.findUnique({
+      where: { correo: data.email },
     });
 
-    updateFields.foto_perfil = result.secure_url;
+    if (emailInUse && emailInUse.id_usuario !== existingUser.id_usuario) {
+      throw new Error('Este correo ya está en uso. Por favor, usa otro diferente.');
+    }
   }
 
-  // Actualizar usuario en la base de datos
+  const newPhoto = await processPhoto(
+    buffer,
+    data.name ?? existingUser.nombre ?? undefined,
+    existingUser.foto_perfil ?? undefined
+  );
+
   const updatedUser = await prisma.usuarios.update({
-    where: { id_usuario: BigInt(user.id) },
-    data: updateFields
+    where: { id_usuario: BigInt(id) },
+    data: {
+      nombre: data.name ?? undefined,
+      apellidos: data.lastname ?? undefined,
+      correo: data.email ?? undefined,
+      foto_perfil: newPhoto ?? undefined,
+    },
   });
 
-  // Retornar el usuario actualizado
   return {
     id: Number(updatedUser.id_usuario),
     name: updatedUser.nombre ?? '',
@@ -115,6 +95,7 @@ export async function updateUser(user: Users, buffer?: Buffer): Promise<Users> {
     googleID: updatedUser.google_id,
     active: updatedUser.activo ?? true,
     rol: (updatedUser.rol as 'ADMIN' | 'USUARIO') ?? 'USUARIO',
-    dateCreate: updatedUser.creado_en ?? new Date()
+    dateCreate: updatedUser.creado_en ?? new Date(),
   };
 }
+
