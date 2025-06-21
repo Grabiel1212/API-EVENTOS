@@ -1,8 +1,13 @@
 import express from 'express';
+import { AuthController } from '../aut/auth.controller';
 import userController from '../controller/userController';
 import { upload } from '../middlewares/multer';
 
 const router = express.Router();
+
+
+router.post('/login', AuthController.loginUser);
+
 
 // ==============================
 // Rutas GET - Lectura
