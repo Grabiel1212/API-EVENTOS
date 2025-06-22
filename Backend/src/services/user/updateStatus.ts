@@ -32,3 +32,4 @@ export async function updateUserStatus(id: number, status: boolean): Promise<voi
     data: { activo: status }
   });
 }
+

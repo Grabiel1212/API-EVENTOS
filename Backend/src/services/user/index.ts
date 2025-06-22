@@ -4,17 +4,19 @@ import { createUser } from './createUser';
 import { deleteUser } from './deleteUser';
 import { findUserById } from './findUser';
 import { listActiveUsers, listInactiveUsers, listUsersByRole } from './listarUser';
+import { updatePassword } from './updatePassword';
 import { updateUserStatus } from './updateStatus';
 import { updateUser } from './updateUser';
 
 
 class UserService implements userInterface {
-  async create(user: Users, buffer?: Buffer): Promise<Users> {
-    return createUser(user, buffer);                 // Crear usuario (con o sin foto)
+ async create(user: Users, buffer?: Buffer, isAdminRequest?: boolean): Promise<Users> {
+    return createUser(user, buffer, isAdminRequest);
   }
 
 async update(id: number, data: Partial<Users>, buffer?: Buffer): Promise<Users> {
     return updateUser(id, data, buffer);
+   
   }
   
 async delete(id: number): Promise<void> {
@@ -39,6 +41,10 @@ async delete(id: number): Promise<void> {
 
   async listByRole(role: 'ADMIN' | 'USUARIO'): Promise<Users[]> {
     return listUsersByRole(role);                    // Listar usuarios por rol
+  }
+
+  async updatePassword(email: string, password: string): Promise<string> {
+    return await updatePassword(email, password);
   }
 
   

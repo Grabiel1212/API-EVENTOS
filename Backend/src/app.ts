@@ -3,6 +3,7 @@ import Env from './config/env';
 import UsuarioRoutes from './router/usuario.routes';
 
 
+
 export class App {
 
  public app : Application; // instanciamos el exprees
@@ -35,5 +36,6 @@ export class App {
 
 
 }
+
 
 export default App;

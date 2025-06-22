@@ -13,5 +13,6 @@ export interface userInterface {
   listActive(): Promise<Users[]>;// Lista todos los usuarios activos.
   listInactive(): Promise<Users[]>;//Lista todos los usuarios inactivos.
   listByRole(role: 'ADMIN' | 'USUARIO'): Promise<Users[]>;//Lista los usuarios según su rol (ADMIN o USUARIO).
+  updatePassword(email: string, newPassword: string): Promise<string>;
   
 }

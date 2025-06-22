@@ -1,6 +1,7 @@
 import express from 'express';
 import { AuthController } from '../aut/auth.controller';
 import userController from '../controller/userController';
+import { authMiddleware } from '../middlewares/authMiddleware';
 import { upload } from '../middlewares/multer';
 
 const router = express.Router();
@@ -34,9 +35,20 @@ router.get('/:id', userController.getUserById);
 // Rutas POST - Crear
 // ==============================
 
-// Crear usuario con foto opcional
-// POST http://localhost:3000/api/v1/user/crear
-router.post('/crear', upload.single('photo'), userController.createUser);
+
+router.post(
+  '/registro',
+  upload.single('photo'),
+  userController.registrarUsuarioNormal
+);
+
+// Ruta protegida para creación de usuarios por administradores
+router.post(
+  '/admin/usuarios',
+  authMiddleware, // Middleware de autenticación
+  upload.single('photo'),
+  userController.crearUsuarioComoAdmin
+);
 
 
 // ==============================
@@ -59,5 +71,8 @@ router.patch('/update/:id', upload.single('photo'), userController.updateUser);
 // Eliminar usuario lógicamente
 // DELETE http://localhost:3000/api/v1/user/1
 router.delete('/:id', userController.deleteUser);
+
+
+router.post('/reset-password',userController.updatePassword)
 
 export default router;

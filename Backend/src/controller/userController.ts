@@ -1,14 +1,21 @@
 import { Request, Response } from 'express';
+import { ApiError } from '../helpers/ApiError';
 import { ApiResponse } from '../helpers/ApiRespose';
 import { logger } from '../helpers/logger';
+import {
+  STATUS_BAD_REQUEST,
+  STATUS_INTERNAL_SERVER_ERROR
+} from '../helpers/status';
 import { Users } from '../model/users';
 import { userSchema } from '../schemas/user.validation';
 import { userPartialSchema } from '../schemas/userPartialSchema';
 import UserService from '../services/user';
 
 
+
 class UserController {
 
+  
   private Servicio= UserService;
 
   constructor(){
@@ -17,8 +24,8 @@ class UserController {
   this.listInactiveUsers = this.listInactiveUsers.bind(this);
   this.listUsersByRole = this.listUsersByRole.bind(this);
   this.getUserById = this.getUserById.bind(this);
-  this.createUser = this.createUser.bind(this);
-  this.updateUser = this.updateUser.bind(this);
+  this.registrarUsuarioNormal = this.registrarUsuarioNormal.bind(this);
+  this.crearUsuarioComoAdmin = this.crearUsuarioComoAdmin.bind(this);
   this.updateUserStatus = this.updateUserStatus.bind(this);
   this.deleteUser = this.deleteUser.bind(this);
   }
@@ -88,27 +95,95 @@ class UserController {
     }
   }
 
-  // CREAR USUARIO
-  async createUser(req: Request, res: Response): Promise<void> {
+
+
+
+
+
+
+
+ // Registrar usuario normal (público)
+  async registrarUsuarioNormal(req: Request, res: Response): Promise<void> {
     try {
       const fileBuffer = req.file?.buffer;
       const { error, value } = userSchema.validate(req.body);
+      
       if (error) {
-        res.status(400).json(ApiResponse.fail('Error de validación', error.details[0].message));
+        res.status(STATUS_BAD_REQUEST).json(
+          ApiResponse.fail('Error de validación', error.details[0].message)
+        );
         return;
       }
 
-      const user = await this.Servicio.create(value, fileBuffer);
-      res.status(201).json(ApiResponse.ok('Usuario creado correctamente', user));
+      // Forzar rol USUARIO para registro público
+      const userData = {
+        ...value,
+        rol: 'USUARIO'
+      };
+
+      const user = await this.Servicio.create(
+        userData, 
+        fileBuffer, 
+        false // No es solicitud de admin
+      );
+      
+      res.status(201).json(
+        ApiResponse.ok('Usuario registrado correctamente', user)
+      );
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error desconocido';
-      logger.error('Error al crear usuario:', message);
-      res.status(500).json(ApiResponse.fail('Error al crear usuario', message));
+      if (err instanceof ApiError) {
+        res.status(err.statusCode).json(
+          ApiResponse.fail(err.message, err.errorCode)
+        );
+      } else {
+        const message = err instanceof Error ? err.message : 'Error desconocido';
+        logger.error('Error al crear usuario:', message);
+        res.status(STATUS_INTERNAL_SERVER_ERROR).json(
+          ApiResponse.fail('Error al crear usuario', message)
+        );
+      }
     }
   }
 
-  // ACTUALIZAR USUARIO PARCIALMENTE
-  async updateUser(req: Request, res: Response): Promise<void> {
+  // Crear usuario como administrador (protegido)
+  async crearUsuarioComoAdmin(req: Request, res: Response): Promise<void> {
+    try {
+      const fileBuffer = req.file?.buffer;
+      const { error, value } = userSchema.validate(req.body);
+      
+      if (error) {
+        res.status(STATUS_BAD_REQUEST).json(
+          ApiResponse.fail('Error de validación', error.details[0].message)
+        );
+        return;
+      }
+
+      const user = await this.Servicio.create(
+        value, 
+        fileBuffer, 
+        true // Es solicitud de admin
+      );
+      
+      res.status(201).json(
+        ApiResponse.ok('Usuario creado correctamente', user)
+      );
+    } catch (err: unknown) {
+      if (err instanceof ApiError) {
+        res.status(err.statusCode).json(
+          ApiResponse.fail(err.message, err.errorCode)
+        );
+      } else {
+        const message = err instanceof Error ? err.message : 'Error desconocido';
+        logger.error('Error al crear usuario:', message);
+        res.status(STATUS_INTERNAL_SERVER_ERROR).json(
+          ApiResponse.fail('Error al crear usuario', message)
+        );
+      }
+    }
+  }
+
+  
+ async updateUser(req: Request, res: Response): Promise<void> {
     try {
       const id = Number(req.params.id);
       if (isNaN(id)) {
@@ -117,7 +192,11 @@ class UserController {
       }
 
       const buffer = req.file?.buffer;
-      const { error, value } = userPartialSchema.validate(req.body, { allowUnknown: false });
+
+      const { error, value } = userPartialSchema.validate(req.body, {
+        allowUnknown: false,
+      });
+
       if (error) {
         res.status(400).json(ApiResponse.fail('Error de validación', error.details[0].message));
         return;
@@ -170,6 +249,34 @@ class UserController {
       res.status(500).json(ApiResponse.fail('Error al eliminar usuario', message));
     }
   }
+
+
+  async updatePassword(req: Request, res: Response): Promise<void> {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      res.status(STATUS_BAD_REQUEST).json(ApiResponse.fail('Email y nueva contraseña son obligatorios'));
+      return;
+    }
+
+    const message = await this.Servicio.updatePassword(email, password);
+    res.json(ApiResponse.ok(message));
+  } catch (error: any) {
+    logger.error('Error al actualizar contraseña:', error);
+    
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json(ApiResponse.fail(error.message, error.errorCode));
+    } else {
+      res.status(STATUS_INTERNAL_SERVER_ERROR).json(ApiResponse.fail('Error interno del servidor'));
+    }
+  }
+}
+
+
+
+
+
 }
 
 export default new UserController();
