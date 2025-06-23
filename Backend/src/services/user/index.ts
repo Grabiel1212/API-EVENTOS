@@ -1,5 +1,5 @@
-import { userInterface } from '../../model/userInterface';
-import { Users } from '../../model/users';
+import { userInterface } from '../../model/usuarios/userInterface';
+import { Users } from '../../model/usuarios/users';
 import { createUser } from './createUser';
 import { deleteUser } from './deleteUser';
 import { findUserById } from './findUser';

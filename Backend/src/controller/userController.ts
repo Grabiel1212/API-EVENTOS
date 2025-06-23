@@ -6,9 +6,9 @@ import {
   STATUS_BAD_REQUEST,
   STATUS_INTERNAL_SERVER_ERROR
 } from '../helpers/status';
-import { Users } from '../model/users';
-import { userSchema } from '../schemas/user.validation';
-import { userPartialSchema } from '../schemas/userPartialSchema';
+import { Users } from '../model/usuarios/users';
+import { userSchema } from '../schemas/usuarios/user.validation';
+import { userPartialSchema } from '../schemas/usuarios/userPartialSchema';
 import UserService from '../services/user';
 
 

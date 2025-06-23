@@ -1,5 +1,5 @@
 import { PrismaClient } from '../../generated/prisma';
-import { Users } from '../../model/users';
+import { Users } from '../../model/usuarios/users';
 import {
   deletePhotoFromCloudinary,
   extractPublicId,

@@ -1,4 +1,4 @@
-import { Users } from '../../model/users';
+import { Users } from '../../model/usuarios/users';
 import { PrismaClient } from '../../generated/prisma'; // ✅ Asegúrate de importar esto
 
 const prisma = new PrismaClient();

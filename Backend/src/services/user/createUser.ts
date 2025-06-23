@@ -6,7 +6,7 @@ import {
   STATUS_FORBIDDEN,
   STATUS_INTERNAL_SERVER_ERROR
 } from '../../helpers/status';
-import { Users } from '../../model/users';
+import { Users } from '../../model/usuarios/users';
 import { uploadToCloudinary } from './../cloudinary/cloudinaryService';
 
 const prisma = new PrismaClient();
