@@ -1,3 +1,4 @@
+import Fuse from 'fuse.js';
 import { PrismaClient } from '../../generated/prisma';
 import { Eventos } from '../../model/eventos/eventos';
 
@@ -10,29 +11,26 @@ const prisma = new PrismaClient();
  * @returns Lista de eventos que coinciden con el nombre.
  */
 export async function buscarEventosPorNombre(nombre: string): Promise<Eventos[]> {
-  const eventos = await prisma.eventos.findMany({
-    where: {
-      titulo: {
-        contains: nombre,
-        mode: 'insensitive'
-      }
-    },
-    orderBy: {
-      creado_evento: 'desc'
-    }
+  const eventos = await prisma.eventos.findMany();
+
+    const fuse = new Fuse(eventos, {
+    keys: ['titulo'],
+    threshold: 0.4,
   });
 
-  return eventos.map(evento => ({
-    id: Number(evento.id_evento),
-    titulo: evento.titulo,
-    descripcion: evento.descripcion ?? '',
-    ubicacion: evento.ubicacion ?? '',
-    fecha_inicio: evento.fecha_inicio,
-    fecha_fin: evento.fecha_fin,
-    precio: Number(evento.precio) || 0,
-    imagen: evento.imagen ?? '',
-    id_categoria: Number(evento.id_categoria),
-    creado_evento: evento.creado_evento ?? new Date(),
-    actualizado_evento: evento.actualizado_evento ?? new Date()
+    const resultado = fuse.search(nombre);
+
+   return resultado.map(({ item }) => ({
+    id: Number(item.id_evento),
+    titulo: item.titulo,
+    descripcion: item.descripcion ?? '',
+    ubicacion: item.ubicacion ?? '',
+    fecha_inicio: item.fecha_inicio,
+    fecha_fin: item.fecha_fin,
+    precio: Number(item.precio) || 0,
+    imagen: item.imagen ?? '',
+    id_categoria: Number(item.id_categoria),
+    creado_evento: item.creado_evento ?? new Date(),
+    actualizado_evento: item.actualizado_evento ?? new Date()
   }));
 }

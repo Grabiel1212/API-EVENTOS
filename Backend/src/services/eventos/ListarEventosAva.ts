@@ -15,7 +15,7 @@ export async function listarEventosOrdenados(order: 'asc' | 'desc' = 'asc'): Pro
 // 2. Eventos aleatorios
 export async function listarEventosAleatorios(): Promise<Eventos[]> {
   const eventos = await prisma.eventos.findMany();
-  eventos.sort(() => Math.random() - 0.5);
+  eventos.sort(() => Math.random() - 0.5); // Mezcla aleatoriamente
   return eventos.map(evento => mapEvento(evento));
 }
 

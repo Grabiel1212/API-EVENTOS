@@ -2,18 +2,18 @@ import { Eventos } from "../../model/eventos/eventos";
 import { EventosInterface } from "../../model/eventos/eventosInterface";
 import { createEventos } from "./createEventos";
 import { deleteEventos } from "./deleteEventos";
-import { ListarEventosID } from "./ListarEventosID";
 import { listarEventos } from "./ListarEventos";
+import { ListarEventosID } from "./ListarEventosID";
 import { updateEvento } from "./updateEventos";
 
-import {
-  listarEventosOrdenados,
-  listarEventosAleatorios,
-  listarEventosPorCategoria,
-  listarEventosPorUbicacion,
-  listarEventosPorRangoFechas
-} from "./ListarEventosAva"; // Ajusta el nombre si lo tienes diferente
 import { buscarEventosPorNombre } from "./BuscarEvento";
+import {
+  listarEventosAleatorios,
+  listarEventosOrdenados,
+  listarEventosPorCategoria,
+  listarEventosPorRangoFechas,
+  listarEventosPorUbicacion
+} from "./ListarEventosAva"; // Ajusta el nombre si lo tienes diferente
 
 class EventosService implements EventosInterface {
   // 1. Obtener todos los eventos
@@ -32,9 +32,11 @@ class EventosService implements EventosInterface {
   }
 
   // 4. Actualizar evento
-  async updateEvento(id: string, data: Partial<Eventos>, buffer?: Buffer): Promise<Eventos> {
-    return updateEvento(Number(id), data, buffer);
-  }
+ // 4. Actualizar evento
+async updateEvento(id: string, data: Partial<Eventos>, buffer?: Buffer, isAdminRequest: boolean = false): Promise<Eventos> {
+  return updateEvento(Number(id), data, buffer, isAdminRequest);
+}
+
 
   // 5. Eliminar evento (lógico)
   async deleteEvento(id: string): Promise<boolean> {

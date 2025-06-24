@@ -1,9 +1,10 @@
 import { PrismaClient } from '../../generated/prisma';
+import { deletePhotoFromCloudinary, extractPublicIdEventos } from '../cloudinary/cloudinaryService';
 
 const prisma = new PrismaClient();
 
 /**
- * Elimina físicamente un evento de la base de datos.
+ * Elimina un evento y su imagen asociada de Cloudinary (si existe).
  *
  * @param {number} id - ID del evento a eliminar.
  * @throws {Error} Si el evento no existe.
@@ -18,6 +19,15 @@ export async function deleteEventos(id: number): Promise<void> {
     throw new Error('Evento no encontrado');
   }
 
+  // Eliminar imagen de Cloudinary si existe
+  if (existingEvento.imagen) {
+    const publicId = extractPublicIdEventos(existingEvento.imagen);
+    if (publicId) {
+      await deletePhotoFromCloudinary(publicId);
+    }
+  }
+
+  // Eliminar evento de la base de datos
   await prisma.eventos.delete({
     where: { id_evento: BigInt(id) }
   });

@@ -1,8 +1,8 @@
+import { PrismaClient } from '../../generated/prisma';
 import { ApiError } from "../../helpers/ApiError";
 import { STATUS_BAD_REQUEST, STATUS_FORBIDDEN, STATUS_INTERNAL_SERVER_ERROR } from "../../helpers/status";
 import { Eventos } from "../../model/eventos/eventos";
-import { PrismaClient } from '../../generated/prisma';
-import { uploadToCloudinary } from "../cloudinary/cloudinaryService";
+import { uploadToCloudinaryEventos } from "../cloudinary/cloudinaryService";
 
 const prisma = new PrismaClient();
 
@@ -44,7 +44,7 @@ export async function createEventos(
 
     // ☁️ Subir imagen a Cloudinary si se recibió buffer
     if (buffer) {
-      const uploadResult = await uploadToCloudinary(buffer, eventosData.titulo);
+      const uploadResult = await uploadToCloudinaryEventos (buffer, eventosData.titulo);
       eventosData.imagen = uploadResult.url;
     }
 

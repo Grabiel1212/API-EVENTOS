@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 
 export async function updatePassword(
   email: string,
- password: string
+  password: string
 ): Promise<string> {
 
   // Validar que la nueva contraseña no esté vacía
@@ -33,6 +33,15 @@ export async function updatePassword(
       STATUS_BAD_REQUEST,
       'Este correo no está registrado',
       'EMAIL_NOT_FOUND'
+    );
+  }
+
+  // Validar que la cuenta esté activa
+  if (user.activo !== true) {
+    throw new ApiError(
+      STATUS_FORBIDDEN,
+      'Esta cuenta está inactiva. No puede actualizar la contraseña.',
+      'INACTIVE_ACCOUNT'
     );
   }
 

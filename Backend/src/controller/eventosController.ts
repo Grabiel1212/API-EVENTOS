@@ -33,23 +33,39 @@ class EventosController {
   }
 
   async getEventoById(req: Request, res: Response): Promise<void> {
-    try {
-      const id = req.params.id;
-      const evento = await this.Servicio.getEventoById(id);
-      if (!evento) {
-        res.status(404).json(ApiResponse.fail('Evento no encontrado'));
-        return;
-      }
-      res.json(ApiResponse.ok('Evento encontrado', evento));
-    } catch (error) {
-      logger.error('Error al obtener evento:', error);
-      res.status(500).json(ApiResponse.fail('Error al obtener evento'));
+  try {
+    const { id } = req.params;
+
+    if (!id || isNaN(Number(id))) {
+      res.status(400).json(ApiResponse.fail('ID inválido'));
+      return;
     }
+
+    const evento = await this.Servicio.getEventoById(id);
+
+    if (!evento) {
+      res.status(404).json(ApiResponse.fail('Evento no encontrado'));
+      return;
+    }
+
+    res.json(ApiResponse.ok('Evento encontrado', evento));
+  } catch (error) {
+    logger.error('Error al obtener evento:', error);
+    res.status(500).json(ApiResponse.fail('Error al obtener evento'));
+  }
   }
 
   async createEvento(req: Request, res: Response): Promise<void> {
     try {
       const buffer = req.file?.buffer;
+       
+    const isAdmin = req.user?.rol === 'ADMIN';
+
+
+    if (!isAdmin) {
+      res.status(403).json(ApiResponse.fail('No tienes permisos para crear eventos'));
+      return;
+    }
       const { error, value } = eventoSchema.validate(req.body);
       if (error) {
         res.status(STATUS_BAD_REQUEST).json(ApiResponse.fail('Error de validación', error.details[0].message));
@@ -63,17 +79,27 @@ class EventosController {
     }
   }
 
-  async updateEvento(req: Request, res: Response): Promise<void> {
-    try {
-      const id = req.params.id;
-      const buffer = req.file?.buffer;
-      const evento = await this.Servicio.updateEvento(id, req.body, buffer);
-      res.json(ApiResponse.ok('Evento actualizado correctamente', evento));
-    } catch (error) {
-      logger.error('Error al actualizar evento:', error);
-      res.status(500).json(ApiResponse.fail('Error al actualizar evento'));
+ async updateEvento(req: Request, res: Response): Promise<void> {
+  try {
+    const id = req.params.id;
+    const buffer = req.file?.buffer;
+
+   
+    const isAdmin = req.user?.rol === 'ADMIN'; // o req.user?.isAdmin
+
+    if (!isAdmin) {
+      res.status(403).json(ApiResponse.fail('No tienes permisos para actualizar eventos'));
+      return;
     }
+
+    const evento = await this.Servicio.updateEvento(id, req.body, buffer, isAdmin);
+    res.json(ApiResponse.ok('Evento actualizado correctamente', evento));
+  } catch (error) {
+    logger.error('Error al actualizar evento:', error);
+    res.status(500).json(ApiResponse.fail('Error al actualizar evento'));
   }
+}
+
 
   async deleteEvento(req: Request, res: Response): Promise<void> {
     try {
@@ -88,7 +114,8 @@ class EventosController {
 
   async listByCategory(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
+       const id = Number(req.params.id_categoria);
+
       const eventos = await this.Servicio.listByCategory(id);
       res.json(ApiResponse.ok('Eventos por categoría', eventos));
     } catch (error) {
@@ -110,7 +137,7 @@ class EventosController {
 
   async listByDateRange(req: Request, res: Response): Promise<void> {
     try {
-      const { desde, hasta } = req.query;
+      const { desde, hasta } = req.body;
       
       if (!desde || !hasta) {
         res.status(400).json(ApiResponse.fail('Parámetros de fecha requeridos'));
@@ -126,7 +153,7 @@ class EventosController {
 
   async buscarPorNombre(req: Request, res: Response): Promise<void> {
     try {
-      const nombre = req.query.nombre as string;
+      const {nombre }= req.body;
       if (!nombre) {
         res.status(400).json(ApiResponse.fail('El parámetro nombre es obligatorio'));
         return;
@@ -139,15 +166,15 @@ class EventosController {
     }
   }
 
-  async listAleatorios(req: Request, res: Response): Promise<void> {
-    try {
-      const eventos = await this.Servicio.listRandom;
-      res.json(ApiResponse.ok('Eventos aleatorios', eventos));
-    } catch (error) {
-      logger.error('Error al listar eventos aleatorios:', error);
-      res.status(500).json(ApiResponse.fail('Error al listar eventos aleatorios'));
-    }
+ async listAleatorios(req: Request, res: Response): Promise<void> {
+  try {
+    const eventos = await this.Servicio.listRandom(); // <- Corrección aquí
+    res.json(ApiResponse.ok('Eventos aleatorios', eventos));
+  } catch (error) {
+    logger.error('Error al listar eventos aleatorios:', error);
+    res.status(500).json(ApiResponse.fail('Error al listar eventos aleatorios'));
   }
+}
 
   async listOrdenados(req: Request, res: Response): Promise<void> {
     try {

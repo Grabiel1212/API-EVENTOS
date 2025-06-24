@@ -1,10 +1,28 @@
 import { PrismaClient } from '../../generated/prisma';
 import { Eventos } from '../../model/eventos/eventos';
-import { uploadToCloudinary, deletePhotoFromCloudinary } from '../cloudinary/cloudinaryService';
+import { deletePhotoFromCloudinary, extractPublicIdEventos, uploadToCloudinaryEventos } from '../cloudinary/cloudinaryService';
 
 const prisma = new PrismaClient();
 
-export async function updateEvento(id: number, data: Partial<Eventos>, buffer?: Buffer): Promise<Eventos> {
+/**
+ * Actualiza un evento si el usuario tiene permisos de administrador.
+ *
+ * @param id - ID del evento
+ * @param data - Datos parciales del evento
+ * @param buffer - Imagen opcional
+ * @param isAdminRequest - Si la solicitud es de un admin (por defecto: false)
+ */
+export async function updateEvento(
+  id: number,
+  data: Partial<Eventos>,
+  buffer?: Buffer,
+  isAdminRequest: boolean = false
+): Promise<Eventos> {
+  // Validar permisos
+  if (!isAdminRequest) {
+    throw new Error('No tienes permisos para actualizar eventos');
+  }
+
   const existing = await prisma.eventos.findUnique({
     where: { id_evento: BigInt(id) }
   });
@@ -15,15 +33,17 @@ export async function updateEvento(id: number, data: Partial<Eventos>, buffer?: 
 
   let nuevaImagenUrl = existing.imagen;
 
-  // Si hay una nueva imagen
   if (buffer) {
-    // Eliminar imagen anterior de Cloudinary
+    // Eliminar imagen anterior
     if (existing.imagen) {
-      await deletePhotoFromCloudinary(existing.imagen);
+      const publicId = extractPublicIdEventos(existing.imagen);
+      if (publicId) {
+        await deletePhotoFromCloudinary(publicId);
+      }
     }
 
     // Subir nueva imagen
-    const uploadResult = await uploadToCloudinary(buffer, data.titulo ?? existing.titulo);
+    const uploadResult = await uploadToCloudinaryEventos(buffer, data.titulo ?? existing.titulo);
     nuevaImagenUrl = uploadResult.url;
   }
 
@@ -34,8 +54,8 @@ export async function updateEvento(id: number, data: Partial<Eventos>, buffer?: 
       titulo: data.titulo,
       descripcion: data.descripcion,
       ubicacion: data.ubicacion,
-      fecha_inicio: data.fecha_inicio,
-      fecha_fin: data.fecha_fin,
+      fecha_inicio: new Date(data.fecha_inicio ?? existing.fecha_inicio),
+      fecha_fin: new Date(data.fecha_fin ?? existing.fecha_fin),
       precio: data.precio,
       imagen: nuevaImagenUrl,
       id_categoria: BigInt(data.id_categoria ?? existing.id_categoria),

@@ -6,8 +6,18 @@ import { upload } from '../middlewares/multer';
 
 const router = express.Router();
 
+// ==============================
+// Rutas de Autenticación y Recuperación
+// ==============================
 
+// Login
 router.post('/login', AuthController.loginUser);
+
+// Buscar por correo para recuperación
+router.post('/buscarEmail', userController.findByEmail);
+
+// Actualizar contraseña (recuperación)
+router.post('/reset-password', userController.updatePassword);
 
 
 // ==============================
@@ -35,17 +45,17 @@ router.get('/:id', userController.getUserById);
 // Rutas POST - Crear
 // ==============================
 
-
+// Registro de usuario normal
 router.post(
   '/registro',
   upload.single('photo'),
   userController.registrarUsuarioNormal
 );
 
-// Ruta protegida para creación de usuarios por administradores
+// Crear usuario como administrador (ruta protegida)
 router.post(
   '/admin/usuarios',
-  authMiddleware, // Middleware de autenticación
+  authMiddleware,
   upload.single('photo'),
   userController.crearUsuarioComoAdmin
 );
@@ -55,24 +65,24 @@ router.post(
 // Rutas PUT/PATCH - Actualizar
 // ==============================
 
-// Actualizar estado (activo/inactivo)
+// Actualizar información de usuario (protegida)
+router.patch(
+  '/actualizar/:id',
+  authMiddleware,
+  upload.single('photo'),
+  userController.updateUser
+);
+
+// Actualizar estado activo/inactivo
 // PUT http://localhost:3000/api/v1/user/1/estado
 router.put('/:id/estado', userController.updateUserStatus);
-
-// Actualizar datos parciales del usuario (nombre, email, foto, etc.)
-// PATCH http://localhost:3000/api/v1/user/usuarios/1
-router.patch('/update/:id', upload.single('photo'), userController.updateUser);
 
 
 // ==============================
 // Rutas DELETE - Eliminación lógica
 // ==============================
 
-// Eliminar usuario lógicamente
-// DELETE http://localhost:3000/api/v1/user/1
+// Eliminar usuario (lógicamente)
 router.delete('/:id', userController.deleteUser);
-
-
-router.post('/reset-password',userController.updatePassword)
 
 export default router;

@@ -51,3 +51,40 @@
 2025-06-22 09:50:52 [[31merror[39m]: Error al actualizar contraseña: Cannot read properties of undefined (reading 'Servicio')
 2025-06-22 09:51:04 [[31merror[39m]: Error al actualizar contraseña: Cannot read properties of undefined (reading 'Servicio')
 2025-06-22 09:51:24 [[31merror[39m]: Error al actualizar contraseña: Cannot read properties of undefined (reading 'Servicio')
+2025-06-23 18:28:55 [[31merror[39m]: Error al obtener evento: The number NaN cannot be converted to a BigInt because it is not an integer
+2025-06-23 18:29:21 [[31merror[39m]: Error al obtener evento: The number NaN cannot be converted to a BigInt because it is not an integer
+2025-06-23 18:31:55 [[31merror[39m]: Error al listar eventos por categoría: The number NaN cannot be converted to a BigInt because it is not an integer
+2025-06-23 18:33:21 [[31merror[39m]: Error al listar eventos por categoría: The number NaN cannot be converted to a BigInt because it is not an integer
+2025-06-23 19:41:29 [[31merror[39m]: Error al listar eventos por categoría: The number NaN cannot be converted to a BigInt because it is not an integer
+2025-06-23 19:42:09 [[31merror[39m]: Error al listar eventos por categoría: Cannot convert object to primitive value
+2025-06-23 19:44:00 [[31merror[39m]: Error al obtener evento: The number NaN cannot be converted to a BigInt because it is not an integer
+2025-06-23 19:46:55 [[31merror[39m]: Error al obtener evento: The number NaN cannot be converted to a BigInt because it is not an integer
+2025-06-23 19:48:15 [[31merror[39m]: Error al obtener evento: The number NaN cannot be converted to a BigInt because it is not an integer
+2025-06-23 19:49:04 [[31merror[39m]: Error al obtener evento: The number NaN cannot be converted to a BigInt because it is not an integer
+2025-06-23 19:51:32 [[31merror[39m]: Error al obtener evento: The number NaN cannot be converted to a BigInt because it is not an integer
+2025-06-23 20:32:51 [[31merror[39m]: Error al actualizar evento: 
+Invalid `prisma.eventos.update()` invocation in
+C:\Users\juang\Documents\Proyectos de NODE\proyecto 2\API-EVENTOS\Backend\src\services\eventos\updateEventos.ts:34:40
+
+  31 }
+  32 
+  33 // Actualizar evento
+→ 34 const updated = await prisma.eventos.update({
+       where: {
+         id_evento: 77n
+       },
+       data: {
+         titulo: "CHIPIRITO",
+         descripcion: "la voda de chipirito",
+         ubicacion: "lima , san marco , Perú",
+         fecha_inicio: "2025-10-01",
+                       ~~~~~~~~~~~~
+         fecha_fin: "2025-10-02",
+         precio: "600",
+         imagen: "https://res.cloudinary.com/dcolydznr/image/upload/v1750728504/eventos/fotoeventos/CHIPIRITO.jpg",
+         id_categoria: 1n,
+         actualizado_evento: new Date("2025-06-24T01:32:51.541Z")
+       }
+     })
+
+Invalid value for argument `fecha_inicio`: premature end of input. Expected ISO-8601 DateTime.

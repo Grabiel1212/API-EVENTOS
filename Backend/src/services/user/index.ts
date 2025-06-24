@@ -2,11 +2,12 @@ import { userInterface } from '../../model/usuarios/userInterface';
 import { Users } from '../../model/usuarios/users';
 import { createUser } from './createUser';
 import { deleteUser } from './deleteUser';
+import { verificarCuentaParaRecuperacion } from './findEmail';
 import { findUserById } from './findUser';
 import { listActiveUsers, listInactiveUsers, listUsersByRole } from './listarUser';
 import { updatePassword } from './updatePassword';
 import { updateUserStatus } from './updateStatus';
-import { updateUser } from './updateUser';
+import { updateRegularUser, updateUserAsAdmin } from './updateUser';
 
 
 class UserService implements userInterface {
@@ -14,9 +15,17 @@ class UserService implements userInterface {
     return createUser(user, buffer, isAdminRequest);
   }
 
-async update(id: number, data: Partial<Users>, buffer?: Buffer): Promise<Users> {
-    return updateUser(id, data, buffer);
-   
+  async update(
+    id: number,
+    data: Partial<Users>,
+    buffer?: Buffer,
+    isAdminRequest: boolean = false
+  ): Promise<Users> {
+    if (isAdminRequest) {
+      return updateUserAsAdmin(id, data, buffer, isAdminRequest);
+    } else {
+      return updateRegularUser(id, data, buffer);
+    }
   }
   
 async delete(id: number): Promise<void> {
@@ -45,6 +54,10 @@ async delete(id: number): Promise<void> {
 
   async updatePassword(email: string, password: string): Promise<string> {
     return await updatePassword(email, password);
+  }
+
+  async findByEmail(email: string): Promise<boolean> {
+    return await verificarCuentaParaRecuperacion(email);                      // Buscar usuario por correo electrónico
   }
 
   

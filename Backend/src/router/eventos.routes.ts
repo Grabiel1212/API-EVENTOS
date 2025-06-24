@@ -1,13 +1,15 @@
 import express from 'express';
 import eventosController from '../controller/eventosController';
-import { upload } from '../middlewares/multer';
 import { authMiddleware } from '../middlewares/authMiddleware';
+import { upload } from '../middlewares/multer';
 
 const router = express.Router();
 
 // ==============================
 // Rutas GET - Lectura
 // ==============================
+// Listar eventos aleatorios
+router.get('/aleatorios', eventosController.listAleatorios);
 
 // Listar todos los eventos
 router.get('/', eventosController.listAllEventos);
@@ -27,8 +29,6 @@ router.get('/fecha/rango', eventosController.listByDateRange);
 // Listar eventos ordenados por fecha de creación
 router.get('/ordenados/:order', eventosController.listOrdenados);
 
-// Listar eventos aleatorios
-router.get('/aleatorios', eventosController.listAleatorios);
 
 // Buscar eventos por nombre
 router.get('/buscar/nombre', eventosController.buscarPorNombre);

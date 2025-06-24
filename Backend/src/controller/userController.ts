@@ -28,6 +28,8 @@ class UserController {
   this.crearUsuarioComoAdmin = this.crearUsuarioComoAdmin.bind(this);
   this.updateUserStatus = this.updateUserStatus.bind(this);
   this.deleteUser = this.deleteUser.bind(this);
+  this.updatePassword = this.updatePassword.bind(this);
+  this.findByEmail = this.findByEmail.bind(this);
   }
 
   
@@ -94,12 +96,6 @@ class UserController {
       res.status(500).json(ApiResponse.fail('Error al obtener usuario por ID', message));
     }
   }
-
-
-
-
-
-
 
 
  // Registrar usuario normal (público)
@@ -183,40 +179,45 @@ class UserController {
   }
 
   
- async updateUser(req: Request, res: Response): Promise<void> {
+ updateUser = async (req: Request, res: Response): Promise<void> => {
     try {
       const id = Number(req.params.id);
-      if (isNaN(id)) {
-        res.status(400).json(ApiResponse.fail('ID inválido'));
-        return;
-      }
-
       const buffer = req.file?.buffer;
-
-      const { error, value } = userPartialSchema.validate(req.body, {
-        allowUnknown: false,
-      });
-
+      const currentUser = req.user; // Usuario autenticado desde el middleware
+      
+      // Validación de datos
+      const { error, value } = userPartialSchema.validate(req.body);
       if (error) {
         res.status(400).json(ApiResponse.fail('Error de validación', error.details[0].message));
         return;
       }
 
-      const partialData: Partial<Users> = {
-        name: value.name,
-        lastname: value.lastname,
-        email: value.email,
-      };
+      const partialData: Partial<Users> = value;
 
-      const updatedUser = await this.Servicio.update(id, partialData, buffer);
-      res.status(200).json(ApiResponse.ok('Usuario actualizado correctamente', updatedUser));
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error desconocido';
-      logger.error('Error al actualizar usuario parcialmente:', message);
-      res.status(500).json(ApiResponse.fail('Error al actualizar usuario', message));
+      // Determinar si es solicitud de admin
+      const isAdminRequest = currentUser?.rol === 'ADMIN';
+
+     
+
+      // Usar this.service para acceder al servicio
+      const updatedUser = await this.Servicio.update(
+        id,
+        partialData,
+        buffer,
+        isAdminRequest
+      );
+      
+      res.status(200).json(ApiResponse.ok('Usuario actualizado', updatedUser));
+    } catch (error: any) {
+      // Manejo de errores
+      if (error instanceof ApiError) {
+        res.status(error.statusCode).json(ApiResponse.fail(error.message, error.errorCode));
+      } else {
+        console.error('Error en updateUser:', error);
+        res.status(500).json(ApiResponse.fail('Error interno del servidor'));
+      }
     }
   }
-
   // ACtivar  USUARIO
   async updateUserStatus(req: Request, res: Response): Promise<void> {
     try {
@@ -252,31 +253,56 @@ class UserController {
 
 
   async updatePassword(req: Request, res: Response): Promise<void> {
-  try {
-    const { email, password } = req.body;
+    try {
+      const { email, password } = req.body;
 
-    if (!email || !password) {
-      res.status(STATUS_BAD_REQUEST).json(ApiResponse.fail('Email y nueva contraseña son obligatorios'));
-      return;
-    }
+      if (!email || !password) {
+        res.status(STATUS_BAD_REQUEST).json(ApiResponse.fail('Email y nueva contraseña son obligatorios'));
+        return;
+      }
 
-    const message = await this.Servicio.updatePassword(email, password);
-    res.json(ApiResponse.ok(message));
-  } catch (error: any) {
-    logger.error('Error al actualizar contraseña:', error);
-    
-    if (error instanceof ApiError) {
-      res.status(error.statusCode).json(ApiResponse.fail(error.message, error.errorCode));
-    } else {
-      res.status(STATUS_INTERNAL_SERVER_ERROR).json(ApiResponse.fail('Error interno del servidor'));
+      // Corrige el nombre a this.service (minúscula)
+      const message = await this.Servicio.updatePassword(email, password);
+      res.json(ApiResponse.ok(message));
+    } catch (error: any) {
+      logger.error('Error al actualizar contraseña:', error);
+      
+      if (error instanceof ApiError) {
+        res.status(error.statusCode).json(ApiResponse.fail(error.message, error.errorCode));
+      } else {
+        res.status(STATUS_INTERNAL_SERVER_ERROR).json(ApiResponse.fail('Error interno del servidor'));
+      }
     }
   }
-}
 
 
+ async findByEmail(req: Request, res: Response): Promise<void> {
+    try {
+      const { email } = req.body;
 
+      // Validación básica
+      if (!email || typeof email !== 'string') {
+        res.status(400).json(ApiResponse.fail('El email es requerido'));
+        return;
+      }
 
+      // Buscar usuario
+      const user = await this.Servicio.findByEmail(email);
 
+      // Si no se encuentra
+      if (!user) {
+        res.status(404).json(ApiResponse.fail('Usuario no encontrado'));
+        return;
+      }
+
+      // Usuario encontrado
+      res.status(200).json(ApiResponse.ok('Usuario encontrado', user));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      logger.error('Error al buscar usuario por email:', message);
+      res.status(500).json(ApiResponse.fail('Error al buscar usuario por email', message));
+    }
+  }
 }
 
 export default new UserController();
