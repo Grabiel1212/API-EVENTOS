@@ -29,6 +29,44 @@ export function extractPublicIdEventos(url: string): string | null {
   }
 }
 
+//agregar extractPublicIdCategorias para imágenes de categorías
+
+
+export function extractPublicIdCategorias(url: string): string | null {
+  try {
+    const parsedUrl = new URL(url);
+    const path = parsedUrl.pathname;
+    const parts = path.split('/');
+    const filenameWithExt = parts.slice(-1)[0];
+    const filename = filenameWithExt.split('.')[0];
+    return `eventos/fotocategorias/${filename}`;
+  } catch {
+    return null;
+  }
+}
+
+
+export const uploadToCloudinaryCategorias = async (
+  buffer: Buffer,
+  filename: string
+): Promise<{ url: string; public_id: string }> => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.upload_stream(
+      {
+        resource_type: 'image',
+        folder: 'eventos/fotocategorias',
+        public_id: filename,
+        overwrite: true,
+      },
+      (error, result) => {
+        if (error || !result) return reject(error);
+        resolve({ url: result.secure_url, public_id: result.public_id });
+      }
+    ).end(buffer);
+  });
+};
+
+
 export const uploadToCloudinary = async (
   buffer: Buffer,
   filename: string

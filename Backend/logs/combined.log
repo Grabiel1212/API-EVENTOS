@@ -88,3 +88,6 @@ C:\Users\juang\Documents\Proyectos de NODE\proyecto 2\API-EVENTOS\Backend\src\se
      })
 
 Invalid value for argument `fecha_inicio`: premature end of input. Expected ISO-8601 DateTime.
+2025-06-24 03:31:43 [[31merror[39m]: Error al buscar usuario por email:
+2025-06-25 16:42:15 [[31merror[39m]: Error al crear categoría: Acceso denegado
+2025-06-25 16:44:36 [[31merror[39m]: Error al crear categoría: Acceso denegado
