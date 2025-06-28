@@ -1,9 +1,6 @@
-import Fuse from 'fuse.js';
 import { PrismaClient } from '../../generated/prisma';
-import { categorias } from '../../generated/prisma/client';
 import { ApiError } from '../../helpers/ApiError';
 import { STATUS_BAD_REQUEST, STATUS_FORBIDDEN, STATUS_INTERNAL_SERVER_ERROR } from "../../helpers/status";
-import { uploadToCloudinaryCategorias } from "../cloudinary/cloudinaryService"; 
 import { Categorias } from '../../model/categorias/categorias';
 
 
@@ -17,24 +14,28 @@ const prisma = new PrismaClient();
  * @returns La categoría creada.
  */
 
-
 export async function createCategoria(
   categoriaData: Categorias,
   adminrequired: boolean = false,
-): Promise <Categorias> {
+): Promise<Categorias> {
   try {
-    // 🔍 Verificar duplicidad por nombre
-
     if (!adminrequired) {
-      // Aquí podrías agregar lógica para verificar si el usuario es admin
-      // Por ejemplo, verificando un token o rol de usuario
-       throw new ApiError(STATUS_FORBIDDEN, 'Acceso denegado', 'NO_AUTORIZADO');
+      throw new ApiError(STATUS_FORBIDDEN, 'Acceso denegado', 'NO_AUTORIZADO');
     }
+
+    if (!categoriaData || !categoriaData.nombre) {
+      throw new ApiError(
+        STATUS_BAD_REQUEST,
+        'Faltan datos requeridos: nombre de categoría',
+        'DATOS_INCOMPLETOS'
+      );
+    }
+
     const exists = await prisma.categorias.findFirst({
       where: { nombre: categoriaData.nombre }
     });
 
-     if (exists) {
+    if (exists) {
       throw new ApiError(
         STATUS_BAD_REQUEST,
         'La categoría ya existe',
@@ -42,11 +43,8 @@ export async function createCategoria(
       );
     }
 
-  
-
     const now = new Date();
 
-    // 📦 Crear categoría
     const categoriaCreada = await prisma.categorias.create({
       data: {
         nombre: categoriaData.nombre,
@@ -67,6 +65,7 @@ export async function createCategoria(
     );
   }
 }
+
 
  
 function mapPrismaCategoriaToModel(prismaCategoria: any): Categorias {

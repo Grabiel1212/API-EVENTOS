@@ -91,3 +91,17 @@ Invalid value for argument `fecha_inicio`: premature end of input. Expected ISO-
 2025-06-24 03:31:43 [[31merror[39m]: Error al buscar usuario por email:
 2025-06-25 16:42:15 [[31merror[39m]: Error al crear categoría: Acceso denegado
 2025-06-25 16:44:36 [[31merror[39m]: Error al crear categoría: Acceso denegado
+2025-06-26 00:16:05 [[31merror[39m]: Error al crear categoría: Error al crear la categoría: Cannot read properties of undefined (reading 'nombre')
+2025-06-26 00:18:05 [[31merror[39m]: Error al crear categoría: Error al crear la categoría: Cannot read properties of undefined (reading 'nombre')
+2025-06-26 00:20:13 [[31merror[39m]: Error al crear categoría: Error al crear la categoría: Cannot read properties of undefined (reading 'nombre')
+2025-06-26 00:21:57 [[31merror[39m]: Error al crear categoría: Error al crear la categoría: Cannot read properties of undefined (reading 'nombre')
+2025-06-26 00:22:53 [[31merror[39m]: Error al crear categoría: Faltan datos requeridos: nombre de categoría
+2025-06-26 00:22:55 [[31merror[39m]: Error al crear categoría: Faltan datos requeridos: nombre de categoría
+2025-06-26 00:23:16 [[31merror[39m]: Error al crear categoría: Faltan datos requeridos: nombre de categoría
+2025-06-26 00:26:40 [[31merror[39m]: Error al actualizar categoría: Categoría no encontrada
+2025-06-26 00:27:08 [[31merror[39m]: Error al actualizar categoría: Categoría no encontrada
+2025-06-26 00:27:28 [[31merror[39m]: Error al actualizar categoría: Categoría no encontrada
+2025-06-26 00:27:43 [[31merror[39m]: Error al actualizar categoría: Categoría no encontrada
+2025-06-26 00:33:38 [[31merror[39m]: Error al registrar el pago: Do not know how to serialize a BigInt
+2025-06-26 00:34:14 [[31merror[39m]: Error al registrar el pago: Do not know how to serialize a BigInt
+2025-06-26 00:35:20 [[31merror[39m]: Error al registrar el pago: Do not know how to serialize a BigInt

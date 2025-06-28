@@ -8,7 +8,7 @@ import {
   STATUS_INTERNAL_SERVER_ERROR
 } from '../helpers/status';
 import { categoriaSchema } from '../schemas/categorias/categorias.validation';
-import CategoriasService from '../services/categorias'; 
+import CategoriasService from '../services/categorias';
 
 class CategoriasController {
   private Servicio = CategoriasService;
@@ -18,7 +18,7 @@ class CategoriasController {
     this.buscarCategoria = this.buscarCategoria.bind(this);
     this.createCategoria = this.createCategoria.bind(this);
     this.updateCategoria = this.updateCategoria.bind(this);
-    this.deleteCategoria = this.deleteCategoria.bind(this);
+    
   }
 
   /** GET /categorias */
@@ -33,20 +33,32 @@ class CategoriasController {
   }
 
   /** POST /categorias/buscar */
-  async buscarCategoria(req: Request, res: Response): Promise<void> {
-    try {
-      const { nombre } = req.body;
-      if (!nombre) {
-        res.status(STATUS_BAD_REQUEST).json(ApiResponse.fail('El parámetro nombre es obligatorio'));
-        return;
-      }
-      const categorias = await this.Servicio.searchByName(nombre);
-      res.json(ApiResponse.ok('Categorías encontradas', categorias));
-    } catch (error) {
-      logger.error('Error al buscar categorías:', error);
-      res.status(STATUS_INTERNAL_SERVER_ERROR).json(ApiResponse.fail('Error al buscar categorías'));
+async buscarCategoria(req: Request, res: Response): Promise<void> {
+  try {
+    const  id  = req.params.id;
+
+    if (id === undefined || isNaN(Number(id))) {
+      res.status(STATUS_BAD_REQUEST).json(
+        ApiResponse.fail('El parámetro ID es obligatorio y debe ser un número')
+      );
+      return;
     }
+
+    const categorias = await this.Servicio.getCategoriaById(Number(id));
+
+    if (!categorias) {
+      res.status(STATUS_BAD_REQUEST).json(ApiResponse.fail('Categoría no encontrada'));
+      return;
+    }
+
+    res.json(ApiResponse.ok('Categoría encontrada', categorias));
+  } catch (error) {
+    logger.error('Error al buscar categoría:', error);
+    res.status(STATUS_INTERNAL_SERVER_ERROR).json(
+      ApiResponse.fail('Error interno al buscar categoría')
+    );
   }
+}
 
   /** POST /categorias */
   async createCategoria(req: Request, res: Response): Promise<void> {
@@ -86,7 +98,7 @@ class CategoriasController {
         return;
       }
 
-      const categoria = await this.Servicio.updateCategorias(id.toString(), req.body, adminRequired);
+      const categoria = await this.Servicio.updateCategoria(id.toString(), req.body, adminRequired);
       res.json(ApiResponse.ok('Categoría actualizada correctamente', categoria));
     } catch (error) {
       logger.error('Error al actualizar categoría:', error);
@@ -94,23 +106,7 @@ class CategoriasController {
     }
   }
 
-  /** DELETE /categorias/:id */
-  async deleteCategoria(req: Request, res: Response): Promise<void> {
-    try {
-      const id = Number(req.params.id);
-
-      if (isNaN(id)) {
-        res.status(STATUS_BAD_REQUEST).json(ApiResponse.fail('ID inválido'));
-        return;
-      }
-
-      await this.Servicio.deleteCategorias(id.toString());
-      res.json(ApiResponse.ok('Categoría eliminada correctamente'));
-    } catch (error) {
-      logger.error('Error al eliminar categoría:', error);
-      res.status(STATUS_INTERNAL_SERVER_ERROR).json(ApiResponse.fail('Error al eliminar categoría'));
-    }
-  }
+  
 }
 
 export default new CategoriasController();
