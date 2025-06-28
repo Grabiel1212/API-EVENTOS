@@ -3,30 +3,118 @@ import EmailIcon from '@mui/icons-material/Email';
 import GoogleIcon from '@mui/icons-material/Google';
 import LockIcon from '@mui/icons-material/Lock';
 import {
-  Box, Button, Divider, IconButton,
+  Box, Button,
+  CircularProgress,
+  Divider, IconButton,
   InputAdornment, Paper, TextField, Typography
 } from '@mui/material';
+import { useGoogleLogin } from '@react-oauth/google';
+import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Logo from '../../assets/logoDark.svg';
+import { useLogin } from '../../services/login/useLogin';
+import { useAuthHandler } from '../hooks/states/useAuthHandler';
 
 const LoginForm = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loaded, setLoaded] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  
+  // Estados para manejar la autenticación
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(false);
+  const [isPlayable, setIsPlayable] = useState(false);
+  
+  // Usar hook de login
+  const {
+    user,
+    loading,
+    error: loginError,
+    message: loginMessage,
+    loginWithEmail,
+    loginWithGoogle,
+    logout
+  } = useLogin();
+  
+  // Estado local para mostrar errores
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  // Usar el handler de autenticación
+  useAuthHandler({
+    isAuthenticated,
+    setIsAuthenticated,
+    setIsEnabled,
+    setIsPlayable
+  });
 
   useEffect(() => {
     setLoaded(true);
   }, []);
 
-  const handleSubmit = (e: any) => {
+  // Sincronizar errores y mensajes del hook
+  useEffect(() => {
+    if (loginError) setError(loginError);
+    if (loginMessage) setMessage(loginMessage);
+  }, [loginError, loginMessage]);
+
+  // Manejar autenticación exitosa
+  useEffect(() => {
+    if (user) {
+      // Verificar el rol del usuario
+      if (user.role === 'ADMIN') {
+        setError('Usted es un administrador, su cuenta no es válida en esta sección');
+        logout();
+      } else if (user.role === 'USUARIO') {
+        setIsAuthenticated(true);
+      }
+    }
+  }, [user, logout, setIsAuthenticated]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ email, password });
+    setError(null);
+    setMessage(null);
+    
+    // Validar campos
+    if (!email || !password) {
+      setError('Por favor complete todos los campos');
+      return;
+    }
+    
+    await loginWithEmail(email, password);
   };
 
-  const handleGoogleLogin = () => {
-    console.log("Login con Google");
-  };
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setGoogleLoading(true);
+      try {
+        const userInfo = await axios.get(
+          'https://www.googleapis.com/oauth2/v3/userinfo',
+          { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } }
+        );
+
+        // Extraer Google ID de la respuesta
+        const googleID = userInfo.data.sub;
+        await loginWithGoogle(googleID);
+        
+      } catch (error) {
+        console.error('Error al obtener información de Google:', error);
+        setError('Error al obtener información de Google');
+      } finally {
+        setGoogleLoading(false);
+      }
+    },
+    onError: (errorResponse) => {
+      console.error('Error en login con Google:', errorResponse);
+      setError('Error en el inicio de sesión con Google');
+      setGoogleLoading(false);
+    },
+  });
 
   return (
     <Box
@@ -133,6 +221,39 @@ const LoginForm = () => {
         >
           Iniciar sesión
         </Typography>
+
+        {/* Mostrar mensajes de error o éxito */}
+        {error && (
+          <Typography 
+            color="error" 
+            align="center" 
+            sx={{ 
+              mb: 2,
+              backgroundColor: 'rgba(255, 0, 0, 0.1)',
+              padding: '10px',
+              borderRadius: '8px',
+              border: '1px solid rgba(255, 0, 0, 0.2)'
+            }}
+          >
+            {error}
+          </Typography>
+        )}
+        
+        {message && (
+          <Typography 
+            color="success.main" 
+            align="center" 
+            sx={{ 
+              mb: 2,
+              backgroundColor: 'rgba(0, 255, 0, 0.1)',
+              padding: '10px',
+              borderRadius: '8px',
+              border: '1px solid rgba(0, 255, 0, 0.2)'
+            }}
+          >
+            {message}
+          </Typography>
+        )}
 
         <Box 
           component="form" 
@@ -252,7 +373,6 @@ const LoginForm = () => {
             }}
           />
 
-          {/* Enlace corregido sin error de sintaxis */}
           <Typography variant="body2" align="right" sx={{ mb: 3, mt: 1 }}>
             <a 
               href="#" 
@@ -281,6 +401,7 @@ const LoginForm = () => {
             type="submit"
             fullWidth
             variant="contained"
+            disabled={loading}
             sx={{
               py: 1.5,
               mb: 2,
@@ -315,7 +436,7 @@ const LoginForm = () => {
               }
             }}
           >
-            Ingresar
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Ingresar'}
           </Button>
           
           <Divider sx={{ 
@@ -342,8 +463,9 @@ const LoginForm = () => {
           <Button
             fullWidth
             variant="outlined"
-            startIcon={<GoogleIcon />}
-            onClick={handleGoogleLogin}
+            startIcon={googleLoading ? <CircularProgress size={20} color="inherit" /> : <GoogleIcon />}
+            onClick={() => handleGoogleLogin()}
+            disabled={googleLoading || loading}
             sx={{
               py: 1.5,
               borderRadius: '12px',
@@ -367,10 +489,9 @@ const LoginForm = () => {
               }
             }}
           >
-            Continuar con Google
+            {googleLoading ? 'Autenticando...' : 'Continuar con Google'}
           </Button>
           
-          {/* Nuevo enlace de registro */}
           <Typography 
             variant="body2" 
             align="center" 

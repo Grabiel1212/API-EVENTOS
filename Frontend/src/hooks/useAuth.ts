@@ -8,7 +8,7 @@ export const useAuth = () => {
 
   useEffect(() => {
     // Simulamos que obtenemos rol de login o backend
-    setRole("admin"); // o "user"
+    setRole("user"); // o "user"
   }, []);
 
   return { role };
