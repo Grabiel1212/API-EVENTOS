@@ -17,34 +17,42 @@ export function useAdminAuthHandler({
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Verifica si ya hay token y validado en localStorage al cargar la app
+  // Verificar autenticación al cargar y en cambios de ruta
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const validado = localStorage.getItem("validado") === "true";
+    const role = localStorage.getItem("role");
+    const user = localStorage.getItem("user");
 
     const isLoginPage = location.pathname === "/login";
+    const isAdmin = role === "ADMIN";
 
-    if (token && validado) {
+    if (token && isAdmin && user) {
       setIsAuthenticated(true);
       setIsEnabled(true);
       setIsPlayable(true);
+      
+      // Si está en login y ya autenticado, redirigir a admin
+      if (isLoginPage) {
+        navigate("/admin/home");
+      }
     } else {
       setIsAuthenticated(false);
       setIsEnabled(false);
       setIsPlayable(false);
+      
+      // Redirigir a login si no está autenticado y no está en login
       if (!isLoginPage) {
         navigate("/login");
       }
     }
   }, [location.pathname, navigate, setIsAuthenticated, setIsEnabled, setIsPlayable]);
 
-  // Redirigir al panel de admin si se autentica
+  // Redirigir al panel de admin después de autenticarse
   useEffect(() => {
     if (isAuthenticated) {
       setIsEnabled(true);
       setIsPlayable(true);
-      // Aquí ya no se vuelve a guardar "validado"
-      navigate("/admin");
+      navigate("/admin/home");
     }
   }, [isAuthenticated, navigate, setIsEnabled, setIsPlayable]);
 

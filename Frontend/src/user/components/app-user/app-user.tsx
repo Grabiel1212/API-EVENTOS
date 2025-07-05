@@ -1,5 +1,5 @@
 // src/user/components/app-user/app-user.tsx
-import { CameraAlt, Check, Close, CloudUpload, Edit } from '@mui/icons-material';
+import { CameraAlt, Check, Close, Edit } from '@mui/icons-material';
 import {
   Alert,
   Avatar,
@@ -19,23 +19,85 @@ import {
   useTheme
 } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
-import { user as initialUser } from '../../hooks/user-app/userInfo';
+import { useActualizarUsuario } from '../../../services/usuarios/useActualizarUsuarioNormal'; // Importa el hook
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  photo: string;
+  role: string;
+  active: boolean;
+  dateCreate: string;
+  lastname: string; // Asegurar que tenemos este campo
+}
 
 const AppUser: React.FC = () => {
   const theme = useTheme();
   const [editMode, setEditMode] = useState(false);
-  const [userData, setUserData] = useState({ ...initialUser });
   const [saving, setSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [avatarHover, setAvatarHover] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Estado para los datos del usuario
+  const [userData, setUserData] = useState({
+    name: '',
+    lastname: '',
+    email: '',
+    photo: ''
+  });
+  
+  // Estado para el usuario actual y archivo seleccionado
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  // Usamos el hook de actualización
+  const { actualizarUsuario } = useActualizarUsuario();
 
+  // Obtener usuario del localStorage al cargar
   useEffect(() => {
-    // Efecto para animar la entrada del componente
+    const getUserFromStorage = () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        const storedUserData = localStorage.getItem('userData');
+        
+        const userInfo = storedUserData 
+          ? JSON.parse(storedUserData) 
+          : storedUser 
+            ? JSON.parse(storedUser) 
+            : null;
+        
+        if (userInfo) {
+          setCurrentUser(userInfo);
+          setUserData({
+            name: userInfo.name || '',
+            lastname: userInfo.lastname || '',
+            email: userInfo.email || '',
+            photo: userInfo.photo || ''
+          });
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    };
+
     document.body.style.background = 'linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%)';
+    getUserFromStorage();
+    
+    // Escuchar eventos de cambio
+    const handleStorageChange = () => {
+      getUserFromStorage();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('authStateChanged', handleStorageChange);
+
     return () => {
       document.body.style.background = '';
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('authStateChanged', handleStorageChange);
     };
   }, []);
 
@@ -48,6 +110,8 @@ const AppUser: React.FC = () => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const file = files[0];
+      setSelectedFile(file);
+      
       const reader = new FileReader();
       reader.onload = () => {
         if (reader.result) {
@@ -58,25 +122,83 @@ const AppUser: React.FC = () => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!currentUser) return;
+    
     setSaving(true);
-    // Simular una petición a la API
-    setTimeout(() => {
-      console.log("Datos guardados:", userData);
+    try {
+      // Obtener token del localStorage
+      const token = localStorage.getItem('token') || '';
+      
+      // Llamar a la API de actualización
+      const response = await actualizarUsuario(
+        parseInt(currentUser.id),
+        userData.name,
+        userData.lastname,
+        selectedFile,
+        token
+      );
+      
+      // Actualizar datos del usuario con la respuesta
+      const updatedUser = {
+        ...currentUser,
+        name: response.data.name,
+        lastname: response.data.lastname,
+        photo: response.data.photo || currentUser.photo
+      };
+      
+      // Actualizar localStorage
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      localStorage.setItem('userData', JSON.stringify(updatedUser));
+      
+      // Actualizar estados
+      setCurrentUser(updatedUser);
+      setSelectedFile(null);
+      
+      // Notificar a otros componentes
+      window.dispatchEvent(new Event('authStateChanged'));
+      window.dispatchEvent(new Event('storage'));
+      
       setSaving(false);
       setEditMode(false);
       setShowSuccess(true);
-    }, 1500);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      setSaving(false);
+      setShowError(true);
+    }
   };
 
   const handleCancel = () => {
-    setUserData({ ...initialUser });
+    // Restaurar datos originales
+    if (currentUser) {
+      setUserData({
+        name: currentUser.name,
+        lastname: currentUser.lastname || '',
+        email: currentUser.email,
+        photo: currentUser.photo
+      });
+    }
+    setSelectedFile(null);
     setEditMode(false);
   };
 
   const handleTriggerFileInput = () => {
     fileInputRef.current?.click();
   };
+
+  if (!currentUser) {
+    return (
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh'
+      }}>
+        <CircularProgress size={60} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ 
@@ -120,7 +242,7 @@ const AppUser: React.FC = () => {
             >
               <Avatar
                 src={userData.photo}
-                alt={`${userData.name} ${userData.lastName}`}
+                alt={`${userData.name} ${userData.lastname}`}
                 sx={{
                   width: 140,
                   height: 140,
@@ -179,26 +301,14 @@ const AppUser: React.FC = () => {
                   />
                   <TextField
                     label="Apellido"
-                    name="lastName"
-                    value={userData.lastName}
+                    name="lastname"
+                    value={userData.lastname}
                     onChange={handleChange}
                     fullWidth
                     sx={{ mb: 2 }}
                     variant="outlined"
                     InputProps={{
                       startAdornment: <Edit sx={{ mr: 1, color: 'action.active' }} />
-                    }}
-                  />
-                  <TextField
-                    label="URL de foto de perfil"
-                    name="photo"
-                    value={userData.photo}
-                    onChange={handleChange}
-                    fullWidth
-                    sx={{ mb: 2 }}
-                    variant="outlined"
-                    InputProps={{
-                      startAdornment: <CloudUpload sx={{ mr: 1, color: 'action.active' }} />
                     }}
                   />
                 </Box>
@@ -218,7 +328,7 @@ const AppUser: React.FC = () => {
                       letterSpacing: '-0.5px'
                     }}
                   >
-                    {userData.name} {userData.lastName}
+                    {userData.name} {userData.lastname}
                   </Typography>
                   <Typography 
                     variant="subtitle1" 

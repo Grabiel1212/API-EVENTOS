@@ -1,6 +1,7 @@
+import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Img1 from '../../../assets/events-img/c8.jpg';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useEventoPorId } from '../../../services/eventos/useEventoPorId';
 import AppCompraUI from './app-compra';
 
 interface EventData {
@@ -16,28 +17,26 @@ interface EventData {
 }
 
 const AppCompraContainer: React.FC = () => {
-    const navigate = useNavigate();
+  const { eventId } = useParams<{ eventId: string }>();
+  const navigate = useNavigate();
   const [cantidad, setCantidad] = useState<number>(1);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [eventData, setEventData] = useState<EventData>({
-    image: Img1,
-    title: 'Concierto Internacional 2025',
-    description: 'Vive la mejor experiencia musical del año con artistas de talla internacional...',
-    location: 'Lima Arena',
-    date: '20 de Julio, 2025 • 8:00 PM',
-    rating: 4.5,
-    reviews: 235,
-    ticketsSold: 500,
-    benefits: ['Acceso VIP', 'Bebida de bienvenida', 'Estacionamiento', 'Souvenir']
-  });
+  
+  // Convertir eventId a número
+  const id = eventId ? parseInt(eventId) : 0;
+  const { evento, loading, error } = useEventoPorId(id);
 
-  const precioUnitario = 70;
+  // Precio unitario del evento, si existe
+  const precioUnitario = evento?.precio || 0;
   const precioTotal = cantidad * precioUnitario;
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoaded(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
+    if (!loading) {
+      // Simulamos un pequeño retraso para la animación de carga
+      const timer = setTimeout(() => setIsLoaded(true), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
 
   const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
@@ -47,23 +46,91 @@ const AppCompraContainer: React.FC = () => {
   };
 
   const handleComprarClick = () => {
-    // Guardar datos en localStorage por si se recarga la página
+    if (!evento) return;
+
+    // Guardar datos en localStorage
     localStorage.setItem('compraData', JSON.stringify({
-      eventData,
+      eventoId: evento.id,
       cantidad,
-      precioTotal
+      precioTotal,
+      evento // Guardamos el objeto completo por si se necesita
     }));
     
-     navigate('/user/compra/pago');
-    // O si prefieres hacerlo en dos pasos (compra -> pago):
-    // navigate('/user/compra', {
-    //   state: {
-    //     eventData,
-    //     cantidad,
-    //     precioTotal,
-    //     nextStep: '/user/compra/pago'
-    //   }
-    // });
+    // Navegar a la página de pago con el eventId
+    navigate(`/user/compra/${eventId}/pago`);
+  };
+
+  // Función para formatear la fecha
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '50vh'
+      }}>
+        <CircularProgress size={60} />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ textAlign: 'center', py: 10 }}>
+        <Typography variant="h6" color="error" gutterBottom>
+          {error}
+        </Typography>
+        <Button 
+          variant="outlined" 
+          onClick={() => window.location.reload()}
+          sx={{ mt: 2 }}
+        >
+          Reintentar
+        </Button>
+      </Box>
+    );
+  }
+
+  if (!evento) {
+    return (
+      <Box sx={{ textAlign: 'center', py: 10 }}>
+        <Typography variant="h6" gutterBottom>
+          Evento no encontrado
+        </Typography>
+        <Button 
+          variant="contained" 
+          onClick={() => navigate('/user')}
+          sx={{ mt: 2 }}
+        >
+          Volver al inicio
+        </Button>
+      </Box>
+    );
+  }
+
+  // Construir el objeto eventData para pasar al UI
+  const eventData: EventData = {
+    image: evento.imagen,
+    title: evento.titulo,
+    description: evento.descripcion,
+    location: evento.ubicacion,
+    date: formatDate(evento.fecha_inicio),
+    rating: 4.5, // Valor por defecto o de la API si lo tuviera
+    reviews: 235, // Valor por defecto o de la API si lo tuviera
+    ticketsSold: 500, // Valor por defecto o de la API si lo tuviera
+    benefits: ['Acceso VIP', 'Bebida de bienvenida', 'Estacionamiento', 'Souvenir'] // Valor por defecto o de la API si lo tuviera
   };
 
   return (

@@ -105,3 +105,49 @@ Invalid value for argument `fecha_inicio`: premature end of input. Expected ISO-
 2025-06-26 00:33:38 [[31merror[39m]: Error al registrar el pago: Do not know how to serialize a BigInt
 2025-06-26 00:34:14 [[31merror[39m]: Error al registrar el pago: Do not know how to serialize a BigInt
 2025-06-26 00:35:20 [[31merror[39m]: Error al registrar el pago: Do not know how to serialize a BigInt
+2025-07-01 20:16:32 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-01 20:17:45 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-01 20:18:45 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-01 20:21:55 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-01 20:52:58 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-01 20:53:25 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-01 20:54:05 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-01 20:54:39 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-01 20:55:16 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-01 20:58:13 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-01 22:23:37 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-01 23:19:40 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-01 23:31:57 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-01 23:55:53 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-02 00:08:31 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-02 00:18:32 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-02 01:09:44 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-02 23:19:48 [[31merror[39m]: Error al buscar eventos por nombre: Cannot destructure property 'nombre' of 'req.body' as it is undefined.
+2025-07-02 23:20:00 [[31merror[39m]: Error al buscar eventos por nombre: Cannot destructure property 'nombre' of 'req.body' as it is undefined.
+2025-07-02 23:24:51 [[31merror[39m]: Error al buscar eventos por nombre: Cannot destructure property 'nombre' of 'req.body' as it is undefined.
+2025-07-02 23:24:58 [[31merror[39m]: Error al buscar eventos por nombre: Cannot destructure property 'nombre' of 'req.body' as it is undefined.
+2025-07-02 23:25:05 [[31merror[39m]: Error al buscar eventos por nombre: Cannot destructure property 'nombre' of 'req.body' as it is undefined.
+2025-07-02 23:30:21 [[31merror[39m]: Error al buscar eventos por nombre: Cannot destructure property 'nombre' of 'req.body' as it is undefined.
+2025-07-02 23:30:38 [[31merror[39m]: Error al buscar eventos por nombre: Cannot destructure property 'nombre' of 'req.body' as it is undefined.
+2025-07-02 23:30:51 [[31merror[39m]: Error al buscar eventos por nombre: Cannot destructure property 'nombre' of 'req.body' as it is undefined.
+2025-07-02 23:32:36 [[31merror[39m]: Error al buscar eventos por nombre: Cannot destructure property 'nombre' of 'req.body' as it is undefined.
+2025-07-02 23:32:37 [[31merror[39m]: Error al buscar eventos por nombre: Cannot destructure property 'nombre' of 'req.body' as it is undefined.
+2025-07-02 23:32:46 [[31merror[39m]: Error al buscar eventos por nombre: Cannot destructure property 'nombre' of 'req.body' as it is undefined.
+2025-07-02 23:35:47 [[31merror[39m]: Error al buscar eventos por nombre: Cannot destructure property 'nombre' of 'req.body' as it is undefined.
+2025-07-02 23:49:56 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-03 01:27:12 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-04 00:45:35 [[31merror[39m]: Error al listar eventos por rango de fechas: Cannot destructure property 'desde' of 'req.body' as it is undefined.
+2025-07-04 00:45:52 [[31merror[39m]: Error al listar eventos por rango de fechas: Cannot destructure property 'desde' of 'req.body' as it is undefined.
+2025-07-04 00:49:02 [[31merror[39m]: Error al listar eventos por rango de fechas: Cannot destructure property 'desde' of 'req.body' as it is undefined.
+2025-07-04 00:52:23 [[31merror[39m]: Error al listar eventos por rango de fechas: Cannot destructure property 'desde' of 'req.body' as it is undefined.
+2025-07-04 00:53:20 [[31merror[39m]: Error al listar eventos por rango de fechas: Cannot destructure property 'desde' of 'req.body' as it is undefined.
+2025-07-04 13:38:00 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-04 14:09:44 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-04 14:34:46 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-04 14:35:12 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-04 14:39:27 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-04 14:39:42 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-04 14:40:19 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-04 14:42:31 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-04 14:42:52 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-04 15:05:19 [[31merror[39m]: Error al buscar usuario por email:

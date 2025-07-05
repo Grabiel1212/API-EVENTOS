@@ -1,11 +1,20 @@
-// ContentApp.tsx
-
-import { useState } from 'react';
+import {
+  Box, Button, Card, CardContent, CardMedia, Chip, CircularProgress,
+  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
+  IconButton, ListItemIcon, ListItemText, Menu, MenuItem,
+  Pagination,
+  Snackbar,
+  Stack,
+  Typography
+} from '@mui/material';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useEventosAleatorios } from '../../../services/eventos/useEventosAleatorios';
 
 // Íconos principales
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer'; // Importación añadida
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import ShareIcon from '@mui/icons-material/Share';
 import StarIcon from '@mui/icons-material/Star';
@@ -17,44 +26,93 @@ import InstagramIcon from '@mui/icons-material/Instagram';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardMedia,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  IconButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-  Snackbar,
-  Typography,
-} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 
-import type { ContentItem } from '../../hooks/content/contentItems';
-import contentItems from '../../hooks/content/contentItems';
+// Define la interfaz Evento
+interface Evento {
+  id: number;
+  titulo: string;
+  descripcion: string;
+  ubicacion: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  precio: number;
+  imagen: string;
+  id_categoria: number;
+  creado_evento: string;
+  actualizado_evento: string;
 
-const ContentApp = () => {
-  const [isLoggedIn] = useState(true);
+}
+
+interface ContentAppProps {
+  eventos?: Evento[];
+  loading?: boolean;
+  error?: string;
+  isSearch?: boolean;
+  isCategory?: boolean;
+  searchQuery?: string;
+  categoryName?: string;
+   isLocation?: boolean;
+  locationName?: string;
+  isDateRange?: boolean;
+  dateRangeString?: string;
+}
+
+const ContentApp = ({
+  eventos: propEventos,
+  loading: propLoading,
+  error: propError,
+  isSearch = false,
+  isCategory = false,
+  searchQuery = '',
+  categoryName = '',
+   isLocation = false,
+  locationName = '',
+   isDateRange = false,
+  dateRangeString = ''
+}: ContentAppProps) => {
   const navigate = useNavigate();
-
   const [openLoginModal, setOpenLoginModal] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openShareMenu = Boolean(anchorEl);
+  
+  // Estado para paginación
+  const [paginaActual, setPaginaActual] = useState(1);
+  const eventosPorPagina = 12;
 
-  const handleBuyClick = () => {
+  // Usar el hook con parámetros de paginación
+  const { eventos: randomEventos, loading: randomLoading, error: randomError, totalPaginas, totalEventos } = 
+    useEventosAleatorios(paginaActual, eventosPorPagina);
+
+  // Determinar qué eventos mostrar
+  const eventos = isSearch || isCategory ? (propEventos || []) : randomEventos;
+  const loading = isSearch || isCategory ? (propLoading || false) : randomLoading;
+  const error = isSearch || isCategory ? (propError || null) : randomError;
+
+  // Solución: Usar estado para autenticación + efecto para cambios
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Verificar autenticación al montar y en cambios de localStorage
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsLoggedIn(localStorage.getItem("isAuthenticated") === "true");
+    };
+
+    checkAuth();
+
+    // Escuchar cambios en localStorage
+    window.addEventListener("storage", checkAuth);
+    return () => {
+      window.removeEventListener("storage", checkAuth);
+    };
+  }, []);
+
+  const handleBuyClick = (eventoId: number) => {
     if (!isLoggedIn) {
       setOpenLoginModal(true);
     } else {
-      navigate('compra');
+      navigate(`/user/compra/${eventoId}`);
     }
   };
 
@@ -72,28 +130,141 @@ const ContentApp = () => {
     handleShareClose();
   };
 
-  return (
-    <Box sx={{ px: { xs: 2, md: 6 }, py: 4, backgroundColor: '#f9f9f9', minHeight: '100vh' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-        <StarIcon color="warning" sx={{ mr: 1, fontSize: '2rem' }} />
-        <Typography variant="h4" fontWeight="bold">
-          Eventos Destacados
-        </Typography>
-      </Box>
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'long'
+    });
+  };
 
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            sm: '1fr 1fr',
-            md: '1fr 1fr 1fr',
-            lg: 'repeat(4, 1fr)',
-          },
-          gap: 4,
-        }}
-      >
-        {contentItems.map((event: ContentItem) => (
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
+    setPaginaActual(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '50vh'
+      }}>
+        <CircularProgress size={60} />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ 
+        textAlign: 'center', 
+        py: 10,
+        color: 'error.main'
+      }}>
+        <Typography variant="h6" gutterBottom>
+          Error al cargar los eventos
+        </Typography>
+        <Typography variant="body1" gutterBottom>
+          {error}
+        </Typography>
+        <Button 
+          variant="outlined" 
+          sx={{ mt: 2 }}
+          onClick={() => window.location.reload()}
+        >
+          Reintentar
+        </Button>
+      </Box>
+    );
+  }
+
+  return (
+  <Box sx={{ px: { xs: 2, md: 6 }, py: 4, backgroundColor: '#f9f9f9', minHeight: '100vh' }}>
+  {isSearch ? (
+    <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+      <SearchIcon color="primary" sx={{ mr: 1, fontSize: '2rem' }} />
+      <Typography variant="h4" fontWeight="bold">
+        Resultados de búsqueda
+      </Typography>
+      <Typography variant="subtitle1" sx={{ ml: 2, color: 'text.secondary' }}>
+        para "{searchQuery}"
+      </Typography>
+    </Box>
+  ) : isCategory ? (
+    <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+      <LocalOfferIcon color="primary" sx={{ mr: 1, fontSize: '2rem' }} />
+      <Typography variant="h4" fontWeight="bold">
+        Eventos en {categoryName}
+      </Typography>
+      {eventos.length > 0 && (
+        <Typography variant="subtitle1" sx={{ ml: 2, color: 'text.secondary' }}>
+          ({eventos.length} eventos disponibles)
+        </Typography>
+      )}
+    </Box>
+  ) : isLocation ? ( // Condicional separado para ubicación
+    <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+      <LocationOnIcon color="primary" sx={{ mr: 1, fontSize: '2rem' }} />
+      <Typography variant="h4" fontWeight="bold">
+        Eventos en {locationName}
+      </Typography>
+      {eventos.length > 0 && (
+        <Typography variant="subtitle1" sx={{ ml: 2, color: 'text.secondary' }}>
+          ({eventos.length} eventos disponibles)
+        </Typography>
+      )}
+    </Box>
+  ) : isDateRange ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+          <CalendarTodayIcon color="primary" sx={{ mr: 1, fontSize: '2rem' }} />
+          <Typography variant="h4" fontWeight="bold">
+            Eventos del {dateRangeString}
+          </Typography>
+          {eventos.length > 0 && (
+            <Typography variant="subtitle1" sx={{ ml: 2, color: 'text.secondary' }}>
+              ({eventos.length} eventos disponibles)
+            </Typography>
+          )}
+        </Box>
+      ) :( // Caso por defecto: Eventos destacados
+    <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+      <StarIcon color="warning" sx={{ mr: 1, fontSize: '2rem' }} />
+      <Typography variant="h4" fontWeight="bold">
+        Eventos Destacados
+      </Typography>
+      {totalEventos > 0 && (
+        <Typography variant="subtitle1" sx={{ ml: 2, color: 'text.secondary' }}>
+          ({totalEventos} eventos disponibles)
+        </Typography>
+      )}
+    </Box>
+  )}
+
+     <Box
+    sx={{
+      display: 'grid',
+      gridTemplateColumns: {
+        xs: '1fr',
+        sm: '1fr 1fr',
+        md: '1fr 1fr 1fr',
+        lg: 'repeat(4, 1fr)',
+      },
+      gap: 4,
+      mb: 4,
+    }}
+  >
+        {eventos.map((event) => (
           <Card
             key={event.id}
             sx={{
@@ -112,8 +283,8 @@ const ContentApp = () => {
             <CardMedia
               component="img"
               height="200"
-              image={event.image}
-              alt={event.title}
+              image={event.imagen}
+              alt={event.titulo}
               sx={{
                 borderTopLeftRadius: 12,
                 borderTopRightRadius: 12,
@@ -132,7 +303,7 @@ const ContentApp = () => {
               </Box>
 
               <Typography variant="h6" fontWeight="bold" gutterBottom>
-                {event.title}
+                {event.titulo}
               </Typography>
 
               <Box
@@ -148,20 +319,20 @@ const ContentApp = () => {
                   mb: 1.5,
                 }}
               >
-                {event.date}
+                {formatDate(event.fecha_inicio)}
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <CalendarTodayIcon fontSize="small" sx={{ mr: 1.5, color: 'text.secondary' }} />
                 <Typography variant="body2" color="text.secondary">
-                  {event.time}
+                  {formatTime(event.fecha_inicio)}
                 </Typography>
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2.5 }}>
                 <LocationOnIcon fontSize="small" sx={{ mr: 1.5, color: 'text.secondary' }} />
                 <Typography variant="body2" color="text.secondary">
-                  {event.location || 'Ubicación no disponible'}
+                  {event.ubicacion || 'Ubicación no disponible'}
                 </Typography>
               </Box>
 
@@ -169,7 +340,7 @@ const ContentApp = () => {
                 variant="contained"
                 color="primary"
                 fullWidth
-                onClick={handleBuyClick}
+                onClick={() => handleBuyClick(event.id)}
                 sx={{
                   borderRadius: 2,
                   textTransform: 'none',
@@ -216,6 +387,34 @@ const ContentApp = () => {
           </Card>
         ))}
       </Box>
+
+      {/* Paginación - Solo para eventos destacados */}
+      {!isSearch && !isCategory && totalPaginas > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, mb: 2 }}>
+          <Stack spacing={2}>
+            <Pagination
+              count={totalPaginas}
+              page={paginaActual}
+              onChange={handlePageChange}
+              color="primary"
+              size="large"
+              showFirstButton
+              showLastButton
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  fontSize: '1.1rem',
+                  minWidth: 36,
+                  height: 36,
+                },
+                '& .Mui-selected': {
+                  fontWeight: 'bold',
+                  transform: 'scale(1.1)',
+                }
+              }}
+            />
+          </Stack>
+        </Box>
+      )}
 
       {/* Modal de login */}
       <Dialog
@@ -281,7 +480,7 @@ const ContentApp = () => {
           <Button
             variant="contained"
             component={Link}
-            to="/login"
+            to="/user/login"
             sx={{
               px: 4,
               py: 1,
@@ -291,6 +490,10 @@ const ContentApp = () => {
               '&:hover': {
                 boxShadow: '0 4px 8px rgba(33, 150, 243, 0.4)',
               },
+            }}
+            onClick={() => {
+              // Guardar la URL actual para redirigir después del login
+              localStorage.setItem('redirectAfterLogin', window.location.pathname);
             }}
           >
             Iniciar Sesión

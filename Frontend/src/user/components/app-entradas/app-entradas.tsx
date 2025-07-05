@@ -1,4 +1,3 @@
-// src/components/AppEntradas/AppEntradas.tsx
 import {
   CalendarToday as DateIcon,
   Download as DownloadIcon,
@@ -16,6 +15,7 @@ import {
   Card,
   CardContent,
   Chip,
+  CircularProgress,
   Container,
   Divider,
   keyframes,
@@ -25,7 +25,7 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import React, { useEffect, useState } from 'react';
-import useEntradas from '../../hooks/entradas/useEntradas';
+import { useEntradasPorUsuario } from '../../../services/registros/useEntradasPorUsuario';
 
 // Animaciones personalizadas
 const fadeIn = keyframes`
@@ -41,8 +41,19 @@ const pulse = keyframes`
 
 const AppEntradas: React.FC = () => {
   const theme = useTheme();
-  const { entradas, descargarEntrada, compartirEntrada } = useEntradas();
+  const [userData, setUserData] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
+  
+  // Obtener datos del usuario del localStorage
+  useEffect(() => {
+    const user = localStorage.getItem('userData');
+    if (user) {
+      setUserData(JSON.parse(user));
+    }
+  }, []);
+  
+  // Obtener entradas del usuario usando el hook
+  const { entradas, loading, error } = useEntradasPorUsuario(userData?.id || 0);
 
   useEffect(() => {
     // Simular carga de datos
@@ -60,6 +71,13 @@ const AppEntradas: React.FC = () => {
     });
   };
 
+  const formatearHora = (fecha: string) => {
+    return new Date(fecha).toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   // Variantes de animación para framer-motion
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -73,6 +91,46 @@ const AppEntradas: React.FC = () => {
       }
     })
   };
+
+  // Función para descargar entrada
+  const descargarEntrada = (id: number) => {
+    console.log(`Descargar entrada ${id}`);
+    // Implementar lógica de descarga
+  };
+
+  // Función para compartir entrada
+  const compartirEntrada = (id: number) => {
+    console.log(`Compartir entrada ${id}`);
+    // Implementar lógica de compartir
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '50vh'
+      }}>
+        <CircularProgress size={60} />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '50vh'
+      }}>
+        <Typography variant="h6" color="error">
+          {error}
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Container maxWidth="md" sx={{ 
@@ -101,7 +159,7 @@ const AppEntradas: React.FC = () => {
           maxWidth: 600,
           mx: 'auto'
         }}>
-          
+          Todas tus entradas adquiridas en un solo lugar
         </Typography>
       </Box>
       
@@ -109,7 +167,7 @@ const AppEntradas: React.FC = () => {
         <Stack spacing={4}>
           {entradas.map((entrada, index) => (
             <motion.div
-              key={entrada.id}
+              key={entrada.id_registro}
               custom={index}
               variants={cardVariants}
               initial="hidden"
@@ -163,7 +221,7 @@ const AppEntradas: React.FC = () => {
                 }}>
                   <TicketIcon sx={{ mr: 1, fontSize: '1rem' }} />
                   <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>
-                    #{entrada.compra.numeroOrden}
+                    #{entrada.id_registro}
                   </Typography>
                 </Box>
                 
@@ -174,7 +232,7 @@ const AppEntradas: React.FC = () => {
                     flexDirection: { xs: 'column', sm: 'row' },
                     p: 4, 
                     pb: 3,
-                    background: `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${entrada.evento.imagen})`,
+                    background: `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${entrada.imagen_evento})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     borderBottom: '1px solid rgba(237,242,247,0.8)',
@@ -200,7 +258,7 @@ const AppEntradas: React.FC = () => {
                       zIndex: 1
                     }}>
                       <Chip 
-                        label={entrada.evento.categoria} 
+                        label="Evento" // Categoría fija por ahora
                         color="primary" 
                         size="small"
                         sx={{ 
@@ -218,7 +276,7 @@ const AppEntradas: React.FC = () => {
                         color: '#2d3748',
                         fontSize: '1.5rem'
                       }}>
-                        {entrada.evento.titulo}
+                        {entrada.nombre_evento}
                       </Typography>
                       
                       <Stack spacing={1.5} sx={{ mt: 2 }}>
@@ -229,7 +287,7 @@ const AppEntradas: React.FC = () => {
                             fontSize: '1.2rem'
                           }} />
                           <Typography variant="body1" sx={{ color: '#4a5568', fontWeight: 500 }}>
-                            <strong style={{ color: '#2d3748' }}>{entrada.evento.fecha}</strong> | {entrada.evento.hora}
+                            <strong style={{ color: '#2d3748' }}>{formatearFecha(entrada.fecha_inicio)}</strong> | {formatearHora(entrada.fecha_inicio)}
                           </Typography>
                         </Box>
                         
@@ -240,7 +298,7 @@ const AppEntradas: React.FC = () => {
                             fontSize: '1.2rem'
                           }} />
                           <Typography variant="body1" sx={{ color: '#4a5568', fontWeight: 500 }}>
-                            {entrada.evento.lugar}
+                            Ubicación no especificada
                           </Typography>
                         </Box>
                       </Stack>
@@ -269,20 +327,7 @@ const AppEntradas: React.FC = () => {
                         }
                       }}
                     >
-                      {entrada.codigoQr ? (
-                        <img 
-                          src={entrada.codigoQr} 
-                          alt="Código QR" 
-                          style={{ 
-                            width: '100%', 
-                            height: '100%', 
-                            objectFit: 'cover',
-                            padding: '10px'
-                          }} 
-                        />
-                      ) : (
-                        <QrCodeIcon sx={{ fontSize: 80, color: '#e2e8f0' }} />
-                      )}
+                      <QrCodeIcon sx={{ fontSize: 80, color: '#e2e8f0' }} />
                     </Box>
                   </Box>
                   
@@ -332,7 +377,7 @@ const AppEntradas: React.FC = () => {
                                 Fecha de compra
                               </Typography>
                               <Typography variant="body1" sx={{ color: '#2d3748', fontWeight: 600 }}>
-                                {formatearFecha(entrada.compra.fecha)}
+                                {formatearFecha(entrada.fecha_registro)}
                               </Typography>
                             </Box>
                           </Box>
@@ -353,7 +398,7 @@ const AppEntradas: React.FC = () => {
                                 Cantidad
                               </Typography>
                               <Typography variant="body1" sx={{ color: '#2d3748', fontWeight: 600 }}>
-                                {entrada.compra.cantidad} entrada{entrada.compra.cantidad > 1 ? 's' : ''}
+                                {entrada.cantidad} entrada{entrada.cantidad > 1 ? 's' : ''}
                               </Typography>
                             </Box>
                           </Box>
@@ -374,7 +419,7 @@ const AppEntradas: React.FC = () => {
                                 Método de pago
                               </Typography>
                               <Typography variant="body1" sx={{ color: '#2d3748', fontWeight: 600 }}>
-                                {entrada.compra.metodo}
+                                {entrada.metodo_pago}
                               </Typography>
                             </Box>
                           </Box>
@@ -399,7 +444,7 @@ const AppEntradas: React.FC = () => {
                               Precio unitario
                             </Typography>
                             <Typography variant="body1" sx={{ color: '#2d3748', fontWeight: 600 }}>
-                              ${entrada.compra.precioUnitario.toFixed(2)}
+                              S/ {entrada.precio.toFixed(2)}
                             </Typography>
                           </Box>
                           
@@ -413,7 +458,7 @@ const AppEntradas: React.FC = () => {
                               Cantidad
                             </Typography>
                             <Typography variant="body1" sx={{ color: '#2d3748', fontWeight: 600 }}>
-                              {entrada.compra.cantidad}
+                              {entrada.cantidad}
                             </Typography>
                           </Box>
                           
@@ -441,7 +486,7 @@ const AppEntradas: React.FC = () => {
                               color: '#2b6cb0',
                               fontSize: '1.4rem'
                             }}>
-                              ${entrada.compra.total.toFixed(2)}
+                              S/ {entrada.monto_total.toFixed(2)}
                             </Typography>
                           </Box>
                         </Box>
@@ -490,7 +535,7 @@ const AppEntradas: React.FC = () => {
                         fontSize: '1.5rem',
                         fontWeight: 600
                       }}>
-                        {entrada.usuario.nombre.charAt(0)}
+                        {userData?.nombre?.charAt(0) || 'U'}
                       </Avatar>
                       <Box>
                         <Typography variant="body1" sx={{ 
@@ -498,14 +543,14 @@ const AppEntradas: React.FC = () => {
                           color: '#2d3748',
                           fontSize: '1.1rem'
                         }}>
-                          {entrada.usuario.nombre}
+                          {userData?.nombre || 'Usuario'}
                         </Typography>
                         <Typography variant="body2" sx={{ 
                           color: '#718096', 
                           fontWeight: 500,
                           mt: 0.5
                         }}>
-                          {entrada.usuario.email}
+                          {userData?.email || ''}
                         </Typography>
                       </Box>
                     </Box>
@@ -538,7 +583,7 @@ const AppEntradas: React.FC = () => {
                         transform: 'translateY(-2px)'
                       }
                     }}
-                    onClick={() => descargarEntrada(entrada.id)}
+                    onClick={() => descargarEntrada(entrada.id_registro)}
                   >
                     Descargar
                   </Button>
@@ -559,7 +604,7 @@ const AppEntradas: React.FC = () => {
                         transform: 'translateY(-2px)'
                       }
                     }}
-                    onClick={() => compartirEntrada(entrada.id)}
+                    onClick={() => compartirEntrada(entrada.id_registro)}
                   >
                     Compartir
                   </Button>

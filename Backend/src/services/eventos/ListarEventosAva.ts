@@ -30,10 +30,26 @@ export async function listarEventosPorCategoria(id_categoria: number): Promise<E
 // 4. Listar por ubicación
 export async function listarEventosPorUbicacion(distrito: string): Promise<Eventos[]> {
   const eventos = await prisma.eventos.findMany({
-    where: { ubicacion: { contains: distrito, mode: 'insensitive' } }
+    where: {
+      ubicacion: {
+        contains: distrito,
+        mode: 'insensitive',
+      }
+    }
   });
-  return eventos.map(evento => mapEvento(evento));
+
+  const eventosFiltrados = eventos.filter(evento => {
+    if (!evento.ubicacion) return false;
+    
+    const partes = evento.ubicacion.split(',').map(p => p.trim());
+
+    // Asegurarse que tenga al menos 2 partes y que la segunda coincida exactamente
+    return partes.length >= 2 && partes[1].toLowerCase() === distrito.toLowerCase();
+  });
+
+  return eventosFiltrados.map(evento => mapEvento(evento));
 }
+
 
 // 5. Listar por rango de fechas
 export async function listarEventosPorRangoFechas(desde: Date, hasta: Date): Promise<Eventos[]> {

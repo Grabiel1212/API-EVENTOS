@@ -1,12 +1,36 @@
 import PersonIcon from '@mui/icons-material/Person';
 import { Box, Button, InputAdornment, TextField, Typography } from '@mui/material';
 
-const RegisterStep2 = ({ formData, handleChange, nextStep, prevStep }: any) => {
+const RegisterStep2 = ({ 
+  formData, 
+  handleChange, 
+  nextStep, 
+  prevStep,
+  isGoogleRegistration,
+  handleSubmit
+}: any) => {
   const isFormValid = formData.firstName.trim() && formData.lastName.trim();
 
   return (
     <Box sx={{ transition: 'all 0.5s ease' }}>
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+       {isGoogleRegistration && (
+        <Typography 
+          variant="body1" 
+          align="center" 
+          sx={{ 
+            mb: 3,
+            color: '#80deea',
+            backgroundColor: 'rgba(0, 188, 212, 0.1)',
+            padding: '10px',
+            borderRadius: '8px',
+            border: '1px solid rgba(0, 188, 212, 0.3)'
+          }}
+        >
+          Estás registrándote con Google. Solo necesitas completar tu nombre y apellido.
+        </Typography>
+      )}
+      
+       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <TextField
           fullWidth
           margin="normal"
@@ -88,11 +112,12 @@ const RegisterStep2 = ({ formData, handleChange, nextStep, prevStep }: any) => {
         />
       </Box>
 
-      <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+    <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
         <Button
           fullWidth
           variant="outlined"
           onClick={prevStep}
+          
           sx={{
             py: 1.5,
             borderRadius: '12px',
@@ -116,7 +141,7 @@ const RegisterStep2 = ({ formData, handleChange, nextStep, prevStep }: any) => {
         <Button
           fullWidth
           variant="contained"
-          onClick={nextStep}
+          onClick={isGoogleRegistration ? handleSubmit : nextStep}
           disabled={!isFormValid}
           sx={{
             py: 1.5,
@@ -124,16 +149,24 @@ const RegisterStep2 = ({ formData, handleChange, nextStep, prevStep }: any) => {
             textTransform: 'none',
             fontWeight: 600,
             fontSize: '1rem',
-            background: 'linear-gradient(45deg, #00bcd4, #0097a7)',
+            background: isGoogleRegistration 
+              ? 'linear-gradient(45deg, #4caf50, #2e7d32)'
+              : 'linear-gradient(45deg, #00bcd4, #0097a7)',
             color: '#fff',
             position: 'relative',
             overflow: 'hidden',
             transition: 'all 0.3s ease',
-            boxShadow: '0 4px 15px rgba(0, 188, 212, 0.3)',
+            boxShadow: isGoogleRegistration 
+              ? '0 4px 15px rgba(76, 175, 80, 0.3)'
+              : '0 4px 15px rgba(0, 188, 212, 0.3)',
             '&:hover': {
               transform: 'translateY(-2px)',
-              boxShadow: '0 6px 20px rgba(0, 188, 212, 0.4)',
-              background: 'linear-gradient(45deg, #00bcd4, #00838f)'
+              boxShadow: isGoogleRegistration 
+                ? '0 6px 20px rgba(76, 175, 80, 0.4)'
+                : '0 6px 20px rgba(0, 188, 212, 0.4)',
+              background: isGoogleRegistration 
+                ? 'linear-gradient(45deg, #4caf50, #1b5e20)'
+                : 'linear-gradient(45deg, #00bcd4, #00838f)'
             },
             '&:disabled': {
               background: 'rgba(178, 235, 242, 0.2)',
@@ -155,7 +188,7 @@ const RegisterStep2 = ({ formData, handleChange, nextStep, prevStep }: any) => {
             }
           }}
         >
-          Continuar
+          {isGoogleRegistration ? 'Registrarse' : 'Continuar'}
         </Button>
       </Box>
 
@@ -167,7 +200,7 @@ const RegisterStep2 = ({ formData, handleChange, nextStep, prevStep }: any) => {
           color: '#b2ebf2',
         }}
       >
-        Paso 2 de 3
+        {isGoogleRegistration ? 'Registro con Google' : 'Paso 2 de 3'}
       </Typography>
     </Box>
   );

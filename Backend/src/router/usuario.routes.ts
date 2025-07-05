@@ -54,7 +54,7 @@ router.post(
 
 // Crear usuario como administrador (ruta protegida)
 router.post(
-  '/admin/usuarios',
+  '/admin/registro',
   authMiddleware,
   upload.single('photo'),
   userController.crearUsuarioComoAdmin

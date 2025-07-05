@@ -13,8 +13,8 @@ import InputBase from '@mui/material/InputBase';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { alpha, styled } from '@mui/material/styles';
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Logo from '../../../assets/logo.svg';
 import FilterPopover from '../../layouts/FilterPopover';
 import UserPanel from '../../layouts/UserPanel';
@@ -26,7 +26,7 @@ const pulseAnimation = keyframes`
   100% { transform: scale(1); }
 `;
 
-const Search = styled('div')(({ theme }) => ({
+const Search = styled('form')(({ theme }) => ({
   position: 'relative',
   borderRadius: theme.shape.borderRadius,
   backgroundColor: alpha(theme.palette.common.white, 0.15),
@@ -65,11 +65,74 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
+interface UserData {
+  name: string;
+  email: string;
+  profilePicture?: string;
+}
+
 export default function MenuBar() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [profileAnchorEl, setProfileAnchorEl] = useState<null | HTMLElement>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
+
+    const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/user/search?q=${encodeURIComponent(searchTerm)}`);
+    }
+  };
+ // Escuchar cambios de autenticación
+  useEffect(() => {
+    const checkAuthState = () => {
+      const authState = localStorage.getItem("isAuthenticated") === "true";
+      setIsLoggedIn(authState);
+      
+      if (authState) {
+        // Obtener datos del usuario
+        const storedUser = localStorage.getItem("user");
+        const storedUserData = localStorage.getItem("userData");
+        
+        // Priorizar los datos de "userData", luego de "user"
+        const userInfo = storedUserData 
+          ? JSON.parse(storedUserData) 
+          : storedUser 
+            ? JSON.parse(storedUser) 
+            : null;
+        
+        if (userInfo) {
+          // Extraer los campos necesarios
+          setUserData({
+            name: userInfo.name || 'Usuario',
+            email: userInfo.email || '',
+            profilePicture: userInfo.photo || userInfo.profilePicture
+          });
+        }
+      } else {
+        setUserData(null);
+      }
+    };
+
+    // Verificar al montar
+    checkAuthState();
+
+    // Escuchar eventos personalizados y de almacenamiento
+    const handleAuthChange = () => checkAuthState();
+    
+    window.addEventListener('authStateChanged', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('authStateChanged', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, []);
 
   const handleOpen = (event: React.MouseEvent<HTMLElement>, type: string) => {
     setAnchorEl(event.currentTarget);
@@ -81,14 +144,33 @@ export default function MenuBar() {
     setActiveFilter(null);
   };
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
+  // En tu componente MenuBar
+const handleLogout = () => {
+  // Borrar datos
+  localStorage.removeItem("isAuthenticated");
+  localStorage.removeItem("userData");
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+  localStorage.clear();
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setProfileAnchorEl(null);
-  };
+  // Resetear estados
+  setIsLoggedIn(false);
+  setUserData(null);
+  setProfileAnchorEl(null);
+
+  // Notificar a otros componentes
+  window.dispatchEvent(new Event('authStateChanged'));
+
+// Redirigir a la página de inicio
+  navigate('/user');
+  
+  // Recargar después de un pequeño retraso para permitir la redirección
+  setTimeout(() => {
+    window.location.reload();
+  }, 1000);
+};
+
 
   return (
     <AppBar 
@@ -130,17 +212,18 @@ export default function MenuBar() {
               />
             </Link>
           </Box>
-          <Search>
-            <SearchIconWrapper sx={{
-              transform: activeFilter ? 'scale(1.1)' : 'scale(1)'
-            }}>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              placeholder="Encuentra eventos, lugares, organizadores, etc..."
-              inputProps={{ 'aria-label': 'search' }}
-            />
-          </Search>
+         
+          <Search onSubmit={handleSearchSubmit}>
+          <SearchIconWrapper>
+            <SearchIcon />
+          </SearchIconWrapper>
+          <StyledInputBase
+            placeholder="Encuentra eventos, lugares, organizadores, etc..."
+            inputProps={{ 'aria-label': 'search' }}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </Search>
         </Box>
 
         {/* Filtros con animación */}
@@ -191,7 +274,8 @@ export default function MenuBar() {
           display: 'flex', 
           gap: 2, 
           mr: 6,
-          transition: 'margin 0.3s ease'
+          transition: 'margin 0.3s ease',
+          alignItems: 'center'
         }}>
           {!isLoggedIn ? (
             <>
@@ -231,23 +315,31 @@ export default function MenuBar() {
               </Button>
             </>
           ) : (
-            <Avatar
-              onClick={(e) => setProfileAnchorEl(e.currentTarget)}
-              sx={{
-                bgcolor: '#10b981',
-                width: 48,
-                height: 48,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                boxShadow: '0 4px 6px rgba(16, 185, 129, 0.3)',
-                '&:hover': {
-                  transform: 'scale(1.1) rotate(8deg)',
-                  boxShadow: '0 6px 10px rgba(16, 185, 129, 0.5)'
-                }
-              }}
-            >
-              <AccountCircleIcon sx={{ fontSize: 30 }} />
-            </Avatar>
+            <>
+              <Box sx={{ textAlign: 'center', mr: 1 }}>
+                <Typography variant="subtitle2" fontWeight="500">
+                  {userData?.name || 'Usuario'}
+                </Typography>
+              </Box>
+              <Avatar
+                onClick={(e) => setProfileAnchorEl(e.currentTarget)}
+      src={userData?.profilePicture}  // Usar directamente la URL
+      sx={{
+                  bgcolor: '#10b981',
+                  width: 48,
+                  height: 48,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  boxShadow: '0 4px 6px rgba(16, 185, 129, 0.3)',
+                  '&:hover': {
+                    transform: 'scale(1.1) rotate(8deg)',
+                    boxShadow: '0 6px 10px rgba(16, 185, 129, 0.5)'
+                  }
+                }}
+              >
+                 {!userData?.profilePicture && <AccountCircleIcon sx={{ fontSize: 30 }} />}
+              </Avatar>
+            </>
           )}
         </Box>
 
@@ -272,6 +364,7 @@ export default function MenuBar() {
             open={Boolean(profileAnchorEl)}
             onClose={() => setProfileAnchorEl(null)}
             onLogout={handleLogout}
+            userData={userData}
           />
         </div>
       </Grow>

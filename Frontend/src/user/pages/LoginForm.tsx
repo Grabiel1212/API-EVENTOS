@@ -13,7 +13,8 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../../assets/logoDark.svg';
-import { useLogin } from '../../services/login/useLogin';
+import { useLogin } from '../../services/login/useUserLogin';
+import { useCheckEmail } from '../../services/validaciones/useCheckEmailRegistro'; // Importamos useCheckEmail
 import { useAuthHandler } from '../hooks/states/useAuthHandler';
 
 const LoginForm = () => {
@@ -43,6 +44,9 @@ const LoginForm = () => {
   // Estado local para mostrar errores
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+     // Usamos el hook existente para verificar emails
+  const { checkEmailExists } = useCheckEmail();
 
   // Usar el handler de autenticación
   useAuthHandler({
@@ -90,32 +94,57 @@ const LoginForm = () => {
   };
 
   const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setGoogleLoading(true);
-      try {
-        const userInfo = await axios.get(
-          'https://www.googleapis.com/oauth2/v3/userinfo',
-          { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } }
-        );
+  onSuccess: async (tokenResponse) => {
+    setGoogleLoading(true);
+    
+    try {
+      // Obtener información de Google
+      const userInfoResponse = await axios.get(
+        'https://www.googleapis.com/oauth2/v3/userinfo',
+        { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } }
+      );
+      
+      const userInfo = userInfoResponse.data;
+      const email = userInfo.email;
 
-        // Extraer Google ID de la respuesta
-        const googleID = userInfo.data.sub;
-        await loginWithGoogle(googleID);
-        
-      } catch (error) {
-        console.error('Error al obtener información de Google:', error);
-        setError('Error al obtener información de Google');
-      } finally {
-        setGoogleLoading(false);
+      // Verificar si el email existe
+      const result = await checkEmailExists(email);
+      
+      if (result.canRegister) {
+        // Redirigir a registro si el usuario no existe
+        navigate('/user/registro', {
+          state: {
+            googleUser: {
+              email: userInfo.email,
+              firstName: userInfo.given_name,
+              lastName: userInfo.family_name || '',
+              googleID: userInfo.sub
+            }
+          }
+        });
+      } else {
+        // Determinar el tipo de cuenta por el mensaje
+        if (result.message.includes("Google")) {
+          // Si el mensaje menciona Google, intentar login
+          await loginWithGoogle(userInfo.sub);
+        } else {
+          // Si no menciona Google, asumir que es cuenta con contraseña
+          setError('Este correo ya está registrado con email y contraseña. Por favor, inicia sesión con tu contraseña.');
+        }
       }
-    },
+    } catch (error: any) {
+      console.error('Error en el proceso de Google:', error);
+      setError('Error en el inicio de sesión con Google: ' + error.message);
+    } finally {
+      setGoogleLoading(false);
+    }
+  },
     onError: (errorResponse) => {
       console.error('Error en login con Google:', errorResponse);
-      setError('Error en el inicio de sesión con Google');
+      setError('Error en la autenticación con Google');
       setGoogleLoading(false);
     },
   });
-
   return (
     <Box
       display="flex"
@@ -374,28 +403,32 @@ const LoginForm = () => {
           />
 
           <Typography variant="body2" align="right" sx={{ mb: 3, mt: 1 }}>
-            <a 
-              href="#" 
-              style={{ 
-                textDecoration: 'none', 
-                color: '#80deea',
-                fontWeight: 500,
-                display: 'inline-flex',
-                alignItems: 'center',
-                transition: 'color 0.3s ease, text-decoration 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#00bcd4';
-                e.currentTarget.style.textDecoration = 'underline';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = '#80deea';
-                e.currentTarget.style.textDecoration = 'none';
-              }}
-            >
-              ¿Olvidaste tu contraseña?
-            </a>
-          </Typography>
+      <a 
+        href="#" 
+        style={{ 
+          textDecoration: 'none', 
+          color: '#80deea',
+          fontWeight: 500,
+          display: 'inline-flex',
+          alignItems: 'center',
+          transition: 'color 0.3s ease, text-decoration 0.3s ease',
+        }}
+        onClick={(e) => {
+          e.preventDefault(); // evita recarga
+          navigate("/user/recuperar"); // <- Redirección con React Router
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = '#00bcd4';
+          e.currentTarget.style.textDecoration = 'underline';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = '#80deea';
+          e.currentTarget.style.textDecoration = 'none';
+        }}
+      >
+        ¿Olvidaste tu contraseña?
+      </a>
+    </Typography>
           
           <Button
             type="submit"

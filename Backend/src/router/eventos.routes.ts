@@ -24,14 +24,14 @@ router.get('/categoria/:id_categoria', eventosController.listByCategory);
 router.get('/ubicacion/:distrito', eventosController.listByUbicacion);
 
 // Listar eventos por rango de fechas
-router.get('/fecha/rango', eventosController.listByDateRange);
+router.post('/fecha/rango', eventosController.listByDateRange);
 
 // Listar eventos ordenados por fecha de creación
 router.get('/ordenados/:order', eventosController.listOrdenados);
 
 
 // Buscar eventos por nombre
-router.get('/buscar/nombre', eventosController.buscarPorNombre);
+router.post('/buscar/nombre', eventosController.buscarPorNombre);
 
 // ==============================
 // Rutas POST - Crear

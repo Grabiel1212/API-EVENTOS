@@ -1,9 +1,8 @@
 import EmailIcon from '@mui/icons-material/Email';
 import { Box, Button, InputAdornment, TextField, Typography } from '@mui/material';
 
-const RegisterStep1 = ({ formData, handleChange, nextStep }: any) => {
+const RegisterStep1 = ({ formData, handleChange, nextStep, emailError }: any) => {
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
-
   return (
     <Box sx={{ transition: 'all 0.5s ease' }}>
       <TextField
@@ -24,7 +23,10 @@ const RegisterStep1 = ({ formData, handleChange, nextStep }: any) => {
               <EmailIcon sx={{ color: '#80deea' }} />
             </InputAdornment>
           ),
+          
         }}
+         error={!!emailError}
+        helperText={emailError}
         sx={{ 
           mb: 3,
           '& .MuiInputBase-input': {
@@ -44,16 +46,19 @@ const RegisterStep1 = ({ formData, handleChange, nextStep }: any) => {
             '&.Mui-focused fieldset': {
               borderColor: '#00bcd4',
               boxShadow: '0 0 0 3px rgba(0, 188, 212, 0.2)'
-            }
+            },
+             '& .MuiFormHelperText-root': {
+            color: emailError ? '#f44336' : '#b2ebf2'
+          },
           },
         }}
       />
 
-      <Button
+     <Button
         fullWidth
         variant="contained"
         onClick={nextStep}
-        disabled={!isValidEmail}
+        disabled={!isValidEmail || !!emailError}
         sx={{
           py: 1.5,
           borderRadius: '12px',
@@ -71,7 +76,7 @@ const RegisterStep1 = ({ formData, handleChange, nextStep }: any) => {
             boxShadow: '0 6px 20px rgba(0, 188, 212, 0.4)',
             background: 'linear-gradient(45deg, #00bcd4, #00838f)'
           },
-          '&:disabled': {
+           '&:disabled': {
             background: 'rgba(178, 235, 242, 0.2)',
             color: 'rgba(224, 247, 250, 0.5)'
           },

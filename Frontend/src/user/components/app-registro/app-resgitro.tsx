@@ -1,6 +1,9 @@
-import { Box, Grow, Paper, Slide, Typography, keyframes } from '@mui/material';
+import { Alert, Box, Grow, keyframes, Paper, Slide, Snackbar, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Logo from '../../../assets/logoDark.svg';
+import { useRegister } from '../../../services/agregar/agregarUsuario';
+import { useCheckEmail } from '../../../services/validaciones/useCheckEmailRegistro';
 import RegisterStep1 from './RegisterStep1';
 import RegisterStep2 from './RegisterStep2';
 import RegisterStep3 from './RegisterStep3';
@@ -24,34 +27,58 @@ const gradientAnimation = keyframes`
 `;
 
 const RegisterForm = () => {
-  const [step, setStep] = useState(1);
+  const location = useLocation();
+  const googleUser = location.state?.googleUser;
+
+  // Solución: Solo una declaración de step y setStep
+  const [step, setStep] = useState(googleUser ? 2 : 1);
   const [formData, setFormData] = useState({
-    email: '',
-    firstName: '',
-    lastName: '',
+    email: googleUser?.email || '',
+    firstName: googleUser?.firstName || '',
+    lastName: googleUser?.lastName || '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    googleID: googleUser?.googleID || ''
   });
   const [loaded, setLoaded] = useState(false);
   const [stepLoaded, setStepLoaded] = useState(true);
+  const [emailError, setEmailError] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  
+  const { checkEmailExists } = useCheckEmail();
+  // Asegúrate de que useRegister también tenga registerWithGoogle
+  const { registerWithEmail, registerWithGoogle } = useRegister();
+
+  const isGoogleRegistration = !!googleUser;
 
   useEffect(() => {
     // Animación de entrada
     setLoaded(true);
-    
+
     // Animación de los pasos
     setStepLoaded(false);
     const timer = setTimeout(() => {
       setStepLoaded(true);
     }, 50);
-    
+
     return () => clearTimeout(timer);
   }, [step]);
+
+  const validateEmail = async () => {
+    const result = await checkEmailExists(formData.email);
+
+    if (result.canRegister) {
+      nextStep();
+    } else {
+      setEmailError(result.message);
+    }
+  };
 
   const nextStep = () => {
     setStepLoaded(false);
     setTimeout(() => {
       setStep(step + 1);
+      setEmailError(''); // Limpiar error al avanzar
     }, 300);
   };
 
@@ -67,10 +94,51 @@ const RegisterForm = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Formulario enviado:', formData);
-    // Aquí iría la lógica para enviar los datos al backend
+
+    try {
+      if (isGoogleRegistration) {
+        // Registro con Google
+        const registerData = {
+          name: formData.firstName,
+          lastname: formData.lastName,
+          email: formData.email,
+          googleID: formData.googleID
+        };
+
+        const response = await registerWithGoogle(registerData);
+        console.log('Registro con Google exitoso:', response);
+      } else {
+        // Registro normal con email y contraseña
+        const registerData = {
+          name: formData.firstName,
+          lastname: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+        };
+
+        const response = await registerWithEmail(registerData);
+        console.log('Registro exitoso:', response);
+      }
+      
+      setSnackbar({
+        open: true,
+        message: '¡Registro exitoso! Redirigiendo...',
+        severity: 'success'
+      });
+
+      setTimeout(() => {
+        window.location.href = '/user/login';
+      }, 2000);
+    } catch (error: any) {
+      console.error('Error en el registro:', error);
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || 'Error en el registro',
+        severity: 'error'
+      });
+    }
   };
 
   return (
@@ -137,36 +205,50 @@ const RegisterForm = () => {
             }
           }}
         >
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
               mb: 3,
               animation: `${fadeIn} 0.8s ease-out`
             }}
           >
-           <Box
-  component="img"
-  src={Logo}
-  alt="Logo de la empresa"
-  sx={{
-    height: '80px',
-    width: 'auto',
-    filter: 'drop-shadow(0 4px 12px rgba(0, 193, 212, 0.3))',
-    transition: 'transform 0.5s ease',
-    '&:hover': {
-      transform: 'scale(1.05) rotate(-2deg)'
-    }
-  }}
-/>
+            <Box
+              component="img"
+              src={Logo}
+              alt="Logo de la empresa"
+              sx={{
+                height: '80px',
+                width: 'auto',
+                filter: 'drop-shadow(0 4px 12px rgba(0, 193, 212, 0.3))',
+                transition: 'transform 0.5s ease',
+                '&:hover': {
+                  transform: 'scale(1.05) rotate(-2deg)'
+                }
+              }}
+            />
           </Box>
+          
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={6000}
+            onClose={() => setSnackbar({...snackbar, open: false})}
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          >
+            <Alert 
+              severity={snackbar.severity as 'success' | 'error'} 
+              sx={{ width: '100%' }}
+            >
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
 
-          <Typography 
-            variant="h5" 
-            component="h1" 
-            align="center" 
-            gutterBottom 
-            sx={{ 
+          <Typography
+            variant="h5"
+            component="h1"
+            align="center"
+            gutterBottom
+            sx={{
               fontWeight: 600,
               color: '#e0f7fa',
               mb: 3,
@@ -190,10 +272,10 @@ const RegisterForm = () => {
           </Typography>
 
           {/* Indicador de progreso */}
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
               mb: 4,
               position: 'relative',
               animation: `${fadeIn} 1.4s ease-out`,
@@ -211,14 +293,14 @@ const RegisterForm = () => {
             }}
           >
             {[1, 2, 3].map((num) => (
-              <Grow 
-                key={num} 
-                in={loaded} 
+              <Grow
+                key={num}
+                in={loaded}
                 timeout={500 + num * 200}
                 style={{ transformOrigin: 'center' }}
               >
-                <Box sx={{ 
-                  position: 'relative', 
+                <Box sx={{
+                  position: 'relative',
                   zIndex: 2,
                   mx: 1,
                   transition: 'all 0.3s ease',
@@ -253,8 +335,8 @@ const RegisterForm = () => {
           {/* Contenido del formulario basado en el paso actual */}
           <Box component="form" onSubmit={handleSubmit}>
             <Slide 
-              direction={step === 1 ? 'right' : step === 2 ? 'left' : 'right'} 
-              in={stepLoaded} 
+              direction="right" 
+              in={step === 1 && stepLoaded} 
               mountOnEnter 
               unmountOnExit
               timeout={300}
@@ -264,49 +346,55 @@ const RegisterForm = () => {
                   <RegisterStep1 
                     formData={formData} 
                     handleChange={handleChange} 
-                    nextStep={nextStep} 
+                    nextStep={validateEmail}
+                    emailError={emailError}
                   />
                 )}
               </div>
             </Slide>
-            
-            <Slide 
-              direction={step === 2 ? 'right' : step === 3 ? 'left' : 'right'} 
-              in={step === 2 && stepLoaded} 
-              mountOnEnter 
+
+            <Slide
+              direction={step === 2 ? "right" : "left"}
+              in={step === 2 && stepLoaded}
+              mountOnEnter
               unmountOnExit
               timeout={300}
             >
               <div>
                 {step === 2 && (
-                  <RegisterStep2 
-                    formData={formData} 
-                    handleChange={handleChange} 
+                  <RegisterStep2
+                    formData={formData}
+                    handleChange={handleChange}
                     nextStep={nextStep}
                     prevStep={prevStep}
-                  />
-                )}
-              </div>
-            </Slide>
-            
-            <Slide 
-              direction={step === 3 ? 'right' : 'left'} 
-              in={step === 3 && stepLoaded} 
-              mountOnEnter 
-              unmountOnExit
-              timeout={300}
-            >
-              <div>
-                {step === 3 && (
-                  <RegisterStep3 
-                    formData={formData} 
-                    handleChange={handleChange} 
-                    prevStep={prevStep}
+                    isGoogleRegistration={isGoogleRegistration}
                     handleSubmit={handleSubmit}
                   />
                 )}
               </div>
             </Slide>
+
+            {/* Paso 3 solo para registro normal (no Google) */}
+            {!isGoogleRegistration && (
+              <Slide
+                direction={step === 3 ? "right" : "left"}
+                in={step === 3 && stepLoaded}
+                mountOnEnter
+                unmountOnExit
+                timeout={300}
+              >
+                <div>
+                  {step === 3 && (
+                    <RegisterStep3
+                      formData={formData}
+                      handleChange={handleChange}
+                      prevStep={prevStep}
+                      handleSubmit={handleSubmit}
+                    />
+                  )}
+                </div>
+              </Slide>
+            )}
           </Box>
         </Paper>
       </Grow>
