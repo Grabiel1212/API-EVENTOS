@@ -1,15 +1,15 @@
-import { Avatar, Divider, List, ListItem, ListItemAvatar, ListItemText, Menu, MenuItem, Typography, IconButton } from '@mui/material';
-import React, { useState } from 'react';
-import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
+import Settings from '@mui/icons-material/Settings';
 import Visibility from '@mui/icons-material/Visibility';
+import { Avatar, Divider, IconButton, List, ListItem, ListItemAvatar, ListItemText, Menu, MenuItem, Typography } from '@mui/material';
+import React, { useState } from 'react';
 
 interface Props {
   user: {
-    name: string;
-    lastName: string;
-    email: string;
-    photo: string;
+    name: string;       // Nombre completo
+    email: string;      // Correo electrónico
+    photo: string;      // URL de la foto
+    role: string;       // Rol del usuario (ADMIN)
   };
 }
 
@@ -28,9 +28,14 @@ const UserProfileMenu: React.FC<Props> = ({ user }) => {
   const handleLogout = () => {
     handleClose();
     localStorage.clear();
-    console.log("Sesión cerrada");
     window.location.href = '/login';
   };
+
+  // Verificar si el usuario es ADMIN
+  if (user.role !== 'ADMIN') {
+    return null; // O mostrar un mensaje de error
+  }
+
 
   return (
     <>
@@ -45,7 +50,7 @@ const UserProfileMenu: React.FC<Props> = ({ user }) => {
               <Avatar src={user.photo} />
             </ListItemAvatar>
             <ListItemText
-              primary={<Typography fontWeight="bold">{user.name} {user.lastName}</Typography>}
+              primary={<Typography fontWeight="bold">{user.name}</Typography>}
               secondary={user.email}
             />
           </ListItem>

@@ -64,6 +64,24 @@ export function CustomAppTitle() {
 // Enhanced Search Component
 export function ToolbarActionsSearch() {
   const [searchOpen, setSearchOpen] = useState(false);
+  const theme = useTheme();
+
+  // Obtener usuario del localStorage
+  const getUserFromStorage = () => {
+    const userData = localStorage.getItem('user');
+    return userData ? JSON.parse(userData) : null;
+  };
+
+  const userData = getUserFromStorage();
+
+  // Si no hay usuario o no es ADMIN, no mostrar el menú
+  if (!userData || userData.role !== 'ADMIN') {
+    return (
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <ThemeSwitcher />
+      </Stack>
+    );
+  }
 
   return (
     <Stack direction="row" alignItems="center" spacing={1}>
@@ -108,10 +126,10 @@ export function ToolbarActionsSearch() {
       {/* TODO: Replace this mock user with the actual user object from your authentication context or state */}
       <UserProfileMenu
         user={{
-          name: "Julio César",
-          lastName: "Bustamante",
-          email: "julio@example.com",
-          photo: "https://i.pravatar.cc/150?img=8",
+          name: userData.name,
+          email: userData.email,
+          photo: userData.photo,
+          role: userData.role
         }}
       />
 
