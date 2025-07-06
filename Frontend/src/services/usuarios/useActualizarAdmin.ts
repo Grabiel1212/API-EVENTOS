@@ -3,14 +3,12 @@ import { useApiBaseUrl } from "../../shared/useApiBaseUrl";
 
 interface ActualizarUsuarioData {
   id: number;
-  name?: string;
-  lastname?: string;
-  email?: string;
+  name: string;
+  lastname: string;
   password?: string;
   rol?: string;
-  active?: boolean;
   photo?: File | null;
-  token: string; 
+  google_id?: string | null;
 }
 
 interface UsuarioResponse {
@@ -24,27 +22,68 @@ export const useActualizarAdmin = () => {
 
   const actualizarUsuario = async (datos: ActualizarUsuarioData): Promise<UsuarioResponse> => {
     try {
-      const formData = new FormData();
-      if (datos.name) formData.append("name", datos.name);
-      if (datos.lastname) formData.append("lastname", datos.lastname);
-      if (datos.email) formData.append("email", datos.email);
-      if (datos.password) formData.append("password", datos.password);
-      if (datos.rol) formData.append("rol", datos.rol);
-      if (datos.active !== undefined) formData.append("active", String(datos.active));
-      if (datos.photo) formData.append("photo", datos.photo);
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No se encontró token de autenticación');
 
-      const response = await axios.patch(`${baseUrl}/user/${datos.id}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${datos.token}` // token en cabecera
-        }
+      const formData = new FormData();
+      
+      // Solo campos permitidos según los errores previos
+      formData.append('name', datos.name);
+      formData.append('lastname', datos.lastname);
+
+      // Campos condicionales para usuarios no-Google
+      if (!datos.google_id) {
+        if (datos.password) formData.append('password', datos.password);
+        if (datos.rol) formData.append('rol', datos.rol.toUpperCase());
+      }
+
+      if (datos.photo) formData.append('photo', datos.photo);
+
+      // Debug: Ver datos que se enviarán
+      console.log('Datos a enviar al servidor:', {
+        name: datos.name,
+        lastname: datos.lastname,
+        rol: datos.rol,
+        hasPassword: !!datos.password,
+        hasPhoto: !!datos.photo
       });
 
-      return response.data;
+      const response = await axios.patch(
+        `${baseUrl}/user/actualizar/${datos.id}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`
+          },
+          transformRequest: (data) => data, // Evita transformación automática de axios
+        }
+      );
+
+      return {
+        success: true,
+        message: 'Usuario actualizado correctamente',
+        data: response.data
+      };
     } catch (error: any) {
+      console.error('Error completo:', {
+        request: {
+          url: error.config?.url,
+          method: error.config?.method,
+          data: error.config?.data,
+          headers: error.config?.headers
+        },
+        response: {
+          status: error.response?.status,
+          data: error.response?.data,
+          headers: error.response?.headers
+        }
+      });
+      
       return {
         success: false,
-        message: error.response?.data?.message || "Error al actualizar usuario"
+        message: error.response?.data?.message || 'Error al actualizar usuario',
+        data: error.response?.data
       };
     }
   };
