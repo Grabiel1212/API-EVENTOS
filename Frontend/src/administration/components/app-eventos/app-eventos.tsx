@@ -1,101 +1,190 @@
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import SearchIcon from "@mui/icons-material/Search";
 import {
+  Alert,
   Box,
-  Stack,
-  Typography,
   Button,
-  TableContainer,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  InputAdornment,
+  MenuItem,
   Paper,
+  Snackbar,
+  Stack,
   Table,
+  TableBody,
+  TableCell,
+  TableContainer,
   TableHead,
   TableRow,
-  TableCell,
-  TableBody,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   TextField,
-  DialogActions,
+  Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import dayjs from "dayjs";
-import { useState } from "react";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import dayjs, { Dayjs } from "dayjs";
+import { useEffect, useState } from "react";
 
-interface Eventos {
-  id: number;
+// Hooks de la API
+import { useCategorias } from "../../../services/categorias/useCategorias";
+import { useActualizarEvento } from "../../../services/eventos/useActualizarEvento";
+import { useCrearEvento } from "../../../services/eventos/useCrearEvento";
+import { useEliminarEvento } from "../../../services/eventos/useEliminarEvento";
+import { useEventos } from "../../../services/eventos/useEventos";
+
+// Interfaz para los datos del formulario
+interface EventoFormData {
+  id?: number;
   titulo: string;
   descripcion: string;
   ubicacion: string;
-  fecha_inicio: Date;
-  fecha_fin: Date;
+  fecha_inicio: Dayjs | null;
+  fecha_fin: Dayjs | null;
   precio: number;
-  creado_evento: Date;
-  actualizado_evento: Date;
+  imagen: string;
+  id_categoria: number;
 }
 
 export default function Eventos() {
-  const [eventos, setEventos] = useState<Eventos[]>([
-    {
-      id: 1,
-      titulo: "RadioHead",
-      descripcion: "Rock 90",
-      ubicacion: "Barranco",
-      fecha_inicio: new Date("2024-04-15"),
-      fecha_fin: new Date("2026-09-20"),
-      precio: 500,
-      creado_evento: new Date("2014-04-13"),
-      actualizado_evento: new Date("2015-04-15"),
-    },
-  ]);
+  const { eventos, loading, error, refetch } = useEventos();
+  const { categorias } = useCategorias();
+  const { crearEvento, estado: crearEstado, mensaje: crearMensaje } = useCrearEvento();
+  const { actualizarEvento, estado: actualizarEstado, mensaje: actualizarMensaje } = useActualizarEvento();
+  const { eliminarEvento, estado: eliminarEstado, mensaje: eliminarMensaje } = useEliminarEvento();
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<Eventos | null>(null);
+  const [currentEvento, setCurrentEvento] = useState<EventoFormData | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "success" | "error",
+  });
 
-  const handleOpenDialog = (evento?: Eventos) => {
-    setCurrentUser(
-      evento ?? {
-        id: 0,
-        titulo: "",
-        descripcion: " ",
-        ubicacion: "",
-        fecha_inicio: new Date(""),
-        fecha_fin: new Date(""),
-        precio: 0,
-        creado_evento: new Date(""),
-        actualizado_evento: new Date(""),
-      }
+  // Filtrar eventos según término de búsqueda
+  const filteredEventos = eventos.filter(evento =>
+    evento.titulo.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Manejar cierre de snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  // Mostrar snackbar de notificación
+  const showSnackbar = (message: string, severity: "success" | "error") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  // Efecto para manejar notificaciones de creación
+  useEffect(() => {
+    if (crearEstado === "success") {
+      showSnackbar(crearMensaje, "success");
+      refetch();
+      handleCloseDialog();
+    } else if (crearEstado === "error") {
+      showSnackbar(crearMensaje, "error");
+    }
+  }, [crearEstado, crearMensaje]);
+
+  // Efecto para manejar notificaciones de actualización
+  useEffect(() => {
+    if (actualizarEstado === "success") {
+      showSnackbar(actualizarMensaje, "success");
+      refetch();
+      handleCloseDialog();
+    } else if (actualizarEstado === "error") {
+      showSnackbar(actualizarMensaje, "error");
+    }
+  }, [actualizarEstado, actualizarMensaje]);
+
+  // Efecto para manejar notificaciones de eliminación
+  useEffect(() => {
+    if (eliminarEstado === "success") {
+      showSnackbar(eliminarMensaje, "success");
+      refetch();
+    } else if (eliminarEstado === "error") {
+      showSnackbar(eliminarMensaje, "error");
+    }
+  }, [eliminarEstado, eliminarMensaje]);
+
+  const token = localStorage.getItem("token");
+
+  // Abrir diálogo para crear/editar evento
+  const handleOpenDialog = (evento?: any) => {
+    setCurrentEvento(
+      evento
+        ? {
+            id: evento.id,
+            titulo: evento.titulo,
+            descripcion: evento.descripcion,
+            ubicacion: evento.ubicacion,
+            fecha_inicio: dayjs(evento.fecha_inicio),
+            fecha_fin: dayjs(evento.fecha_fin),
+            precio: evento.precio,
+            imagen: evento.imagen,
+            id_categoria: evento.id_categoria,
+          }
+        : {
+            titulo: "",
+            descripcion: "",
+            ubicacion: "",
+            fecha_inicio: null,
+            fecha_fin: null,
+            precio: 0,
+            imagen: "",
+            id_categoria: categorias[0]?.id_categoria || 0,
+          }
     );
     setDialogOpen(true);
   };
+
+  // Cerrar diálogo
   const handleCloseDialog = () => {
     setDialogOpen(false);
-    setCurrentUser(null);
+    setCurrentEvento(null);
   };
 
-  const handleSave = () => {
-    if (!currentUser) return;
-    setEventos((prev) => {
-      const exists = prev.some((u) => u.id === currentUser.id);
-      return exists
-        ? prev.map((u) => (u.id === currentUser.id ? currentUser : u))
-        : [
-            ...prev,
-            {
-              ...currentUser,
-              id: prev.length ? Math.max(...prev.map((u) => u.id)) + 1 : 1,
-            },
-          ];
-    });
-    handleCloseDialog();
+  // Guardar evento (crear o actualizar)
+  const handleSave = async () => {
+    if (!currentEvento || !token) return;
+
+    const eventoData = {
+      titulo: currentEvento.titulo,
+      descripcion: currentEvento.descripcion,
+      ubicacion: currentEvento.ubicacion,
+      fecha_inicio: currentEvento.fecha_inicio?.format("YYYY-MM-DD") || "",
+      fecha_fin: currentEvento.fecha_fin?.format("YYYY-MM-DD") || "",
+      precio: currentEvento.precio,
+      imagen: currentEvento.imagen,
+      id_categoria: currentEvento.id_categoria,
+    };
+
+    if (currentEvento.id) {
+      await actualizarEvento(currentEvento.id, eventoData, token);
+    } else {
+      await crearEvento(eventoData, token);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    setEventos((prev) => prev.filter((u) => u.id !== id));
+  // Eliminar evento
+  const handleDelete = async (id: number) => {
+    if (token) {
+      await eliminarEvento(id, token);
+    }
+  };
+
+  // Obtener nombre de categoría por ID
+  const getCategoriaNombre = (id: number) => {
+    const categoria = categorias.find(c => c.id_categoria === id);
+    return categoria ? categoria.nombre : "Desconocida";
   };
 
   return (
@@ -105,99 +194,112 @@ export default function Eventos() {
         justifyContent="space-between"
         alignItems="center"
         mb={3}
+        flexWrap="wrap"
+        gap={2}
       >
         <Typography variant="h4" fontWeight="bold">
           Gestión de Eventos
         </Typography>
+        
+        <TextField
+          placeholder="Buscar eventos..."
+          variant="outlined"
+          size="small"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ minWidth: 250 }}
+        />
+        
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
         >
-          Agregar Eventos
+          Nuevo Evento
         </Button>
       </Stack>
 
-      <TableContainer
-        component={Paper}
-        elevation={4}
-        sx={{ borderRadius: 3, overflow: "hidden" }}
-      >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>
-                <strong>Titulo</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Descripcion</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Ubicacion</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Fecha_Inicio</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Fecha_Fin</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Creado_Evento</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Actualizacion_Evento</strong>
-              </TableCell>
-              <TableCell align="right">
-                <strong>Acciones</strong>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {eventos.map((Eventos) => (
-              <TableRow key={Eventos.id}>
-                <TableCell>{Eventos.titulo}</TableCell>
-                <TableCell>{Eventos.descripcion}</TableCell>
-                <TableCell>{Eventos.ubicacion}</TableCell>
-                <TableCell>
-                  {Eventos.fecha_inicio.toLocaleDateString()}
-                </TableCell>
-                <TableCell>{Eventos.fecha_fin.toLocaleDateString()}</TableCell>
-                <TableCell>{Eventos.precio}</TableCell>
-                <TableCell>
-                  {Eventos.creado_evento.toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  {Eventos.actualizado_evento.toLocaleDateString()}
-                </TableCell>
-                <TableCell align="right">
-                  <IconButton
-                    onClick={() => handleOpenDialog(Eventos)}
-                    color="primary"
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => handleDelete(Eventos.id)}
-                    color="error"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-            {eventos.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
-                  <Typography variant="body1" color="text.secondary">
-                    No hay Eventos registradas.
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
+      {loading ? (
+        <Box display="flex" justifyContent="center" py={4}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <TableContainer
+          component={Paper}
+          elevation={4}
+          sx={{ borderRadius: 3, overflow: "hidden" }}
+        >
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell><strong>Título</strong></TableCell>
+            
+                <TableCell><strong>Ubicación</strong></TableCell>
+                <TableCell><strong>Fecha Inicio</strong></TableCell>
+                <TableCell><strong>Fecha Fin</strong></TableCell>
+                <TableCell><strong>Precio</strong></TableCell>
+                <TableCell><strong>Categoría</strong></TableCell>
+                <TableCell align="right"><strong>Acciones</strong></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredEventos.map((evento) => (
+                <TableRow key={evento.id}>
+                  <TableCell>{evento.titulo}</TableCell>
+                
+                  <TableCell>{evento.ubicacion}</TableCell>
+                  <TableCell>
+                    {new Date(evento.fecha_inicio).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(evento.fecha_fin).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>S/ {evento.precio.toFixed(2)}</TableCell>
+                  <TableCell>{getCategoriaNombre(evento.id_categoria)}</TableCell>
+                  <TableCell align="right">
+                    <IconButton
+                      onClick={() => handleOpenDialog(evento)}
+                      color="primary"
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => evento.id && handleDelete(evento.id)}
+                      color="error"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {filteredEventos.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                    <Typography variant="body1" color="text.secondary">
+                      {searchTerm ? "No se encontraron eventos" : "No hay eventos registrados"}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      {/* Diálogo para crear/editar eventos */}
       <Dialog
         open={dialogOpen}
         onClose={handleCloseDialog}
@@ -205,62 +307,53 @@ export default function Eventos() {
         maxWidth="sm"
       >
         <DialogTitle>
-          {currentUser && eventos.some((u) => u.id === currentUser.id)
-            ? "Editar Eventos"
-            : "Agregar Eventos"}
+          {currentEvento?.id ? "Editar Evento" : "Nuevo Evento"}
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             <TextField
-              label="titulo"
+              label="Título"
               fullWidth
               variant="outlined"
-              value={currentUser?.titulo ?? ""}
+              value={currentEvento?.titulo || ""}
               onChange={(e) =>
-                setCurrentUser(
+                setCurrentEvento(
                   (prev) => prev && { ...prev, titulo: e.target.value }
                 )
               }
             />
             <TextField
-              label="Descricpion"
+              label="Descripción"
               fullWidth
               variant="outlined"
-              value={currentUser?.descripcion ?? ""}
+              multiline
+              rows={3}
+              value={currentEvento?.descripcion || ""}
               onChange={(e) =>
-                setCurrentUser(
+                setCurrentEvento(
                   (prev) => prev && { ...prev, descripcion: e.target.value }
                 )
               }
             />
             <TextField
-              label="Ubicacion"
+              label="Ubicación"
               fullWidth
               variant="outlined"
-              value={currentUser?.ubicacion ?? ""}
+              value={currentEvento?.ubicacion || ""}
               onChange={(e) =>
-                setCurrentUser(
+                setCurrentEvento(
                   (prev) => prev && { ...prev, ubicacion: e.target.value }
                 )
               }
             />
+            
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
-                label="Fecha_Inicio"
-                value={
-                  currentUser?.fecha_inicio
-                    ? dayjs(currentUser.fecha_inicio)
-                    : null
-                }
+                label="Fecha Inicio"
+                value={currentEvento?.fecha_inicio || null}
                 onChange={(newValue) => {
-                  setCurrentUser(
-                    (prev) =>
-                      prev && {
-                        ...prev,
-                        fecha_inicio: newValue
-                          ? newValue.toDate()
-                          : prev.fecha_inicio,
-                      }
+                  setCurrentEvento(
+                    (prev) => prev && { ...prev, fecha_inicio: newValue }
                   );
                 }}
                 slotProps={{
@@ -268,21 +361,14 @@ export default function Eventos() {
                 }}
               />
             </LocalizationProvider>
+            
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
-                label="Fecha_Fin"
-                value={
-                  currentUser?.fecha_fin ? dayjs(currentUser.fecha_fin) : null
-                }
+                label="Fecha Fin"
+                value={currentEvento?.fecha_fin || null}
                 onChange={(newValue) => {
-                  setCurrentUser(
-                    (prev) =>
-                      prev && {
-                        ...prev,
-                        fecha_fin: newValue
-                          ? newValue.toDate()
-                          : prev.fecha_fin,
-                      }
+                  setCurrentEvento(
+                    (prev) => prev && { ...prev, fecha_fin: newValue }
                   );
                 }}
                 slotProps={{
@@ -290,74 +376,90 @@ export default function Eventos() {
                 }}
               />
             </LocalizationProvider>
+            
             <TextField
-              label="Precio"
+              label="Precio (S/)"
+              type="number"
               fullWidth
               variant="outlined"
-              value={currentUser?.precio ?? ""}
+              value={currentEvento?.precio || 0}
               onChange={(e) =>
-                setCurrentUser(
+                setCurrentEvento(
                   (prev) => prev && { ...prev, precio: Number(e.target.value) }
                 )
               }
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">S/</InputAdornment>
+                ),
+              }}
             />
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                label="Creado_Evento"
-                value={
-                  currentUser?.creado_evento
-                    ? dayjs(currentUser.creado_evento)
-                    : null
-                }
-                onChange={(newValue) => {
-                  setCurrentUser(
-                    (prev) =>
-                      prev && {
-                        ...prev,
-                        creado_evento: newValue
-                          ? newValue.toDate()
-                          : prev.fecha_fin,
-                      }
-                  );
-                }}
-                slotProps={{
-                  textField: { fullWidth: true, variant: "outlined" },
-                }}
-              />
-            </LocalizationProvider>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                label="Actualizado_Evento"
-                value={
-                  currentUser?.actualizado_evento
-                    ? dayjs(currentUser.actualizado_evento)
-                    : null
-                }
-                onChange={(newValue) => {
-                  setCurrentUser(
-                    (prev) =>
-                      prev && {
-                        ...prev,
-                        actualizado_evento: newValue
-                          ? newValue.toDate()
-                          : prev.fecha_fin,
-                      }
-                  );
-                }}
-                slotProps={{
-                  textField: { fullWidth: true, variant: "outlined" },
-                }}
-              />
-            </LocalizationProvider>
+            
+            <TextField
+              label="Imagen (URL)"
+              fullWidth
+              variant="outlined"
+              value={currentEvento?.imagen || ""}
+              onChange={(e) =>
+                setCurrentEvento(
+                  (prev) => prev && { ...prev, imagen: e.target.value }
+                )
+              }
+            />
+            
+            <TextField
+              select
+              label="Categoría"
+              fullWidth
+              variant="outlined"
+              value={currentEvento?.id_categoria || ""}
+              onChange={(e) =>
+                setCurrentEvento(
+                  (prev) => prev && { ...prev, id_categoria: Number(e.target.value) }
+                )
+              }
+            >
+              {categorias.map((categoria) => (
+                <MenuItem key={categoria.id_categoria} value={categoria.id_categoria}>
+                  {categoria.nombre}
+                </MenuItem>
+              ))}
+            </TextField>
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={handleCloseDialog}>Cancelar</Button>
-          <Button onClick={handleSave} variant="contained">
-            Guardar
+          <Button onClick={handleCloseDialog} disabled={crearEstado === "loading" || actualizarEstado === "loading"}>
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleSave} 
+            variant="contained"
+            disabled={crearEstado === "loading" || actualizarEstado === "loading"}
+          >
+            {crearEstado === "loading" || actualizarEstado === "loading" ? (
+              <CircularProgress size={24} />
+            ) : (
+              "Guardar"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar para notificaciones */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

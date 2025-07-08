@@ -30,12 +30,14 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
+import { useActualizarAdmin } from "../../../services/usuarios/useActualizarAdmin";
+import { useActualizarEstadoUsuario } from "../../../services/usuarios/useActualizarEstadoUsuario";
 import { useUsuarioPorId } from "../../../services/usuarios/useBuscarUsuarioId";
+import { useEliminarUsuario } from "../../../services/usuarios/useEliminarUsuario";
 import { useUsuariosAdministradores } from "../../../services/usuarios/useListarAdministradores";
 import { useUsuariosNormales } from "../../../services/usuarios/useListarUsuarioNormales";
 import { useUsuariosInactivos } from "../../../services/usuarios/useListarUsuariosInactivos";
 import { useRegistrarAdmin } from "../../../services/usuarios/useRegistrarAdmin";
-import { useActualizarAdmin } from "../../../services/usuarios/useActualizarAdmin";
 
 interface User {
   id: number;
@@ -62,18 +64,29 @@ const mapUsuarioToUser = (u: any): User => ({
 });
 
 export default function UserApp() {
-  const [viewMode, setViewMode] = useState<
-    "normales" | "administradores" | "inactivos" | "individual"
-  >("normales");
+
+  const [viewMode, setViewMode] = useState<"normales" | "administradores" | "inactivos" | "individual">("normales");
   const [searchId, setSearchId] = useState<string>("");
   const [users, setUsers] = useState<User[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [newUser, setNewUser] = useState<User>({ 
+    id: 0, 
+    name: "", 
+    lastname: "", 
+    email: "", 
+    active: true,
+    rol: "usuario",
+    dateCreate: new Date().toISOString().split("T")[0],
+    google_id: null
+  });
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [password, setPassword] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingId, setLoadingId] = useState<number | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const normales = useUsuariosNormales();
@@ -82,6 +95,8 @@ export default function UserApp() {
   const usuarioIndividual = useUsuarioPorId(parseInt(searchId) || 0);
   const { registrarUsuario } = useRegistrarAdmin();
   const { actualizarUsuario } = useActualizarAdmin();
+  const { eliminarUsuario } = useEliminarUsuario();
+  const { actualizarEstado } = useActualizarEstadoUsuario();
 
   useEffect(() => {
     switch (viewMode) {
@@ -102,8 +117,8 @@ export default function UserApp() {
     }
   }, [viewMode, normales.usuarios, administradores.usuarios, inactivos.usuarios, usuarioIndividual.usuario]);
 
-  const handleOpenDialog = (user?: User) => {
-    setCurrentUser(user ?? { 
+  const handleOpenAddDialog = () => {
+    setNewUser({ 
       id: 0, 
       name: "", 
       lastname: "", 
@@ -115,16 +130,67 @@ export default function UserApp() {
     });
     setPassword("");
     setPhotoFile(null);
-    setDialogOpen(true);
+    setAddDialogOpen(true);
     setError(null);
   };
 
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
-    setCurrentUser(null);
+  const handleCloseAddDialog = () => {
+    setAddDialogOpen(false);
+  };
+
+  const handleOpenEditDialog = (user: User) => {
+    setCurrentUser(user);
     setPassword("");
     setPhotoFile(null);
+    setEditDialogOpen(true);
     setError(null);
+  };
+
+  const handleCloseEditDialog = () => {
+    setEditDialogOpen(false);
+    setCurrentUser(null);
+  };
+
+  const handleActivateUser = async (id: number) => {
+    try {
+      setLoading(true);
+      setLoadingId(id);
+      
+      const result = await actualizarEstado(id, true);
+      
+      if (result) {
+        setSuccess("Usuario activado correctamente");
+        setUsers(prev => prev.map(u => u.id === id ? { ...u, active: true } : u));
+      } else {
+        setError("Error al activar usuario");
+      }
+    } catch (error: any) {
+      setError(error.message || "Error al activar usuario");
+    } finally {
+      setLoading(false);
+      setLoadingId(null);
+    }
+  };
+
+  const handleDeleteUser = async (id: number) => {
+    try {
+      setLoading(true);
+      setLoadingId(id);
+      
+      const result = await eliminarUsuario(id);
+      
+      if (result) {
+        setSuccess("Usuario eliminado correctamente");
+        setUsers(prev => prev.filter(u => u.id !== id));
+      } else {
+        setError("Error al eliminar usuario");
+      }
+    } catch (error: any) {
+      setError(error.message || "Error al eliminar usuario");
+    } finally {
+      setLoading(false);
+      setLoadingId(null);
+    }
   };
 
   const handleUpdateUser = async () => {
@@ -135,19 +201,20 @@ export default function UserApp() {
       setError(null);
 
       const isGoogleUser = !!currentUser.google_id;
-      const rolBackend = currentUser.rol.toUpperCase();
-
-      const result = await actualizarUsuario({
+      const updateData: any = {
         id: currentUser.id,
         name: currentUser.name,
         lastname: currentUser.lastname,
-        photo: photoFile,
-        google_id: currentUser.google_id,
-        ...(!isGoogleUser && {
-          password: password || undefined,
-          rol: rolBackend
-        })
-      });
+      };
+
+      if (!isGoogleUser) {
+        if (password) updateData.password = password;
+        if (currentUser.rol) updateData.rol = currentUser.rol.toUpperCase();
+      }
+
+      if (photoFile) updateData.photo = photoFile;
+
+      const result = await actualizarUsuario(updateData);
 
       if (result.success) {
         setSuccess("Usuario actualizado correctamente");
@@ -156,11 +223,11 @@ export default function UserApp() {
             ...u, 
             name: currentUser.name,
             lastname: currentUser.lastname,
-            rol: rolBackend,
+            rol: currentUser.rol.toUpperCase(),
             ...(photoFile && { photo: URL.createObjectURL(photoFile) })
           } : u
         ));
-        handleCloseDialog();
+        handleCloseEditDialog();
       } else {
         setError(result.message);
       }
@@ -171,19 +238,9 @@ export default function UserApp() {
     }
   };
 
-  const handleSave = async () => {
-    if (!currentUser) {
-      setError("Datos de usuario no disponibles");
-      return;
-    }
-
-    if (!currentUser.name || !currentUser.lastname || !currentUser.email) {
-      setError("Nombre, apellido y email son campos requeridos");
-      return;
-    }
-
-    if (!password) {
-      setError("La contraseña es requerida para nuevos usuarios");
+  const handleRegisterUser = async () => {
+    if (!newUser.name || !newUser.lastname || !newUser.email || !password) {
+      setError("Todos los campos son requeridos");
       return;
     }
 
@@ -191,30 +248,27 @@ export default function UserApp() {
       setLoading(true);
       setError(null);
 
-      const rolBackend = currentUser.rol.toUpperCase() === "ADMIN" ? "ADMIN" : "USUARIO";
-      const rawToken = rolBackend === "ADMIN" ? localStorage.getItem("token") : undefined;
-      const token = rawToken === null ? undefined : rawToken;
+      const rolBackend = newUser.rol.toUpperCase() as "ADMIN" | "USUARIO";
+      const token = rolBackend === "ADMIN" ? localStorage.getItem("token") : undefined;
 
       const response = await registrarUsuario(
         {
-          name: currentUser.name,
-          lastname: currentUser.lastname,
-          email: currentUser.email,
+          name: newUser.name,
+          lastname: newUser.lastname,
+          email: newUser.email,
           password: password,
           rol: rolBackend,
           photo: photoFile || null,
         },
-        token
+        token || undefined
       );
 
       if (response.success) {
-        setSuccess(`${rolBackend === "ADMIN" ? "Administrador" : "Usuario"} registrado correctamente`);
+        setSuccess("Usuario registrado correctamente");
         setUsers(prev => [...prev, mapUsuarioToUser(response.data)]);
-        handleCloseDialog();
+        handleCloseAddDialog();
       } else {
-        setError(response.message?.includes("EMAIL_ALREADY_EXISTS") 
-          ? "El correo electrónico ya está registrado" 
-          : response.message || "Error al registrar usuario");
+        setError(response.message || "Error al registrar usuario");
       }
     } catch (error: any) {
       setError(error.response?.data?.error === "EMAIL_ALREADY_EXISTS"
@@ -223,10 +277,6 @@ export default function UserApp() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDelete = (id: number) => {
-    setUsers(prev => prev.filter(u => u.id !== id));
   };
 
   const handleSearch = () => {
@@ -251,7 +301,12 @@ export default function UserApp() {
 
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" fontWeight="bold">Gestión de Usuarios</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} disabled={loading}>
+        <Button 
+          variant="contained" 
+          startIcon={<AddIcon />} 
+          onClick={handleOpenAddDialog} 
+          disabled={loading}
+        >
           Agregar usuario
         </Button>
       </Stack>
@@ -316,19 +371,40 @@ export default function UserApp() {
                 <TableCell>{user.active ? "Activo" : "Inactivo"}</TableCell>
                 <TableCell>{user.rol === "ADMIN" ? "Administrador" : "Usuario Normal"}</TableCell>
                 <TableCell>
-                  {new Date(user.dateCreate).toLocaleDateString("es-ES", {
-                    year: "numeric",
-                    month: "2-digit",
+                  {new Date(user.dateCreate).toLocaleDateString("es-PE", {
                     day: "2-digit",
+                    month: "long",
+                    year: "numeric",
                   })}
                 </TableCell>
                 <TableCell align="right">
-                  <IconButton onClick={() => handleOpenDialog(user)} color="primary" disabled={loading}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDelete(user.id)} color="error" disabled={loading}>
-                    <DeleteIcon />
-                  </IconButton>
+                  {viewMode === "inactivos" ? (
+                    <Button 
+                      variant="contained" 
+                      color="success"
+                      onClick={() => handleActivateUser(user.id)}
+                      disabled={loading && loadingId === user.id}
+                    >
+                      {loading && loadingId === user.id ? "Activando..." : "Activar"}
+                    </Button>
+                  ) : (
+                    <>
+                      <IconButton 
+                        onClick={() => handleOpenEditDialog(user)} 
+                        color="primary" 
+                        disabled={loading}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton 
+                        onClick={() => handleDeleteUser(user.id)} 
+                        color="error" 
+                        disabled={loading && loadingId === user.id}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -345,8 +421,101 @@ export default function UserApp() {
         </Table>
       </TableContainer>
 
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} fullWidth maxWidth="sm">
-        <DialogTitle>{currentUser?.id !== 0 ? "Editar usuario" : "Agregar usuario"}</DialogTitle>
+      <Dialog open={addDialogOpen} onClose={handleCloseAddDialog} fullWidth maxWidth="sm">
+        <DialogTitle>Agregar nuevo usuario</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+            {error && <Alert severity="error">{error}</Alert>}
+
+            <TextField
+              label="Nombre"
+              value={newUser.name}
+              onChange={(e) => setNewUser(prev => ({ ...prev, name: e.target.value }))}
+              fullWidth
+              margin="dense"
+              required
+            />
+
+            <TextField
+              label="Apellido"
+              value={newUser.lastname}
+              onChange={(e) => setNewUser(prev => ({ ...prev, lastname: e.target.value }))}
+              fullWidth
+              margin="dense"
+              required
+            />
+
+            <TextField
+              label="Email"
+              value={newUser.email}
+              onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
+              fullWidth
+              margin="dense"
+              required
+              type="email"
+            />
+
+            <TextField
+              label="Contraseña"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              fullWidth
+              margin="dense"
+              required
+            />
+
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Rol *</InputLabel>
+              <Select
+                value={newUser.rol}
+                onChange={(e) => setNewUser(prev => ({ ...prev, rol: e.target.value }))}
+                label="Rol"
+                required
+              >
+                <MenuItem value="admin">Administrador</MenuItem>
+                <MenuItem value="usuario">Usuario normal</MenuItem>
+              </Select>
+            </FormControl>
+
+            <Box>
+              <Button 
+                variant="outlined" 
+                startIcon={<CloudUploadIcon />} 
+                onClick={triggerFileInput}
+                disabled={loading}
+              >
+                Subir foto
+              </Button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handlePhotoChange} 
+                accept="image/*" 
+                hidden 
+              />
+              {photoFile && (
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  Archivo seleccionado: {photoFile.name}
+                </Typography>
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAddDialog}>Cancelar</Button>
+          <Button
+            onClick={handleRegisterUser}
+            variant="contained"
+            disabled={loading}
+          >
+            {loading ? "Registrando..." : "Registrar"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={editDialogOpen} onClose={handleCloseEditDialog} fullWidth maxWidth="sm">
+        <DialogTitle>Editar usuario</DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             {error && <Alert severity="error">{error}</Alert>}
@@ -354,44 +523,46 @@ export default function UserApp() {
             <TextField
               label="Nombre"
               value={currentUser?.name || ""}
-              onChange={(e) => setCurrentUser(prev => prev && { ...prev, name: e.target.value })}
+              onChange={(e) => setCurrentUser(prev => prev && ({ ...prev, name: e.target.value }))}
               fullWidth
               margin="dense"
+              required
             />
 
             <TextField
               label="Apellido"
               value={currentUser?.lastname || ""}
-              onChange={(e) => setCurrentUser(prev => prev && { ...prev, lastname: e.target.value })}
+              onChange={(e) => setCurrentUser(prev => prev && ({ ...prev, lastname: e.target.value }))}
               fullWidth
               margin="dense"
+              required
             />
 
             <TextField
               label="Email"
               value={currentUser?.email || ""}
-              InputProps={{ readOnly: true }}
               fullWidth
               margin="dense"
+              disabled
             />
 
-            {(!currentUser?.google_id || currentUser?.id === 0) && (
+            {!currentUser?.google_id && (
               <>
                 <TextField
-                  label={currentUser?.id === 0 ? "Contraseña" : "Nueva contraseña (opcional)"}
+                  label="Nueva contraseña"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   fullWidth
                   margin="dense"
-                  required={currentUser?.id === 0}
+                  helperText="Dejar vacío para mantener la contraseña actual"
                 />
 
                 <FormControl fullWidth margin="dense">
                   <InputLabel>Rol</InputLabel>
                   <Select
                     value={currentUser?.rol?.toLowerCase() || "usuario"}
-                    onChange={(e) => setCurrentUser(prev => prev && { ...prev, rol: e.target.value })}
+                    onChange={(e) => setCurrentUser(prev => prev && ({ ...prev, rol: e.target.value }))}
                     label="Rol"
                   >
                     <MenuItem value="admin">Administrador</MenuItem>
@@ -402,26 +573,37 @@ export default function UserApp() {
             )}
 
             <Box>
-              <Button variant="outlined" startIcon={<CloudUploadIcon />} onClick={triggerFileInput} disabled={loading}>
-                Subir foto
+              <Button 
+                variant="outlined" 
+                startIcon={<CloudUploadIcon />} 
+                onClick={triggerFileInput}
+                disabled={loading}
+              >
+                Cambiar foto
               </Button>
-              <input type="file" ref={fileInputRef} onChange={handlePhotoChange} accept="image/*" hidden />
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handlePhotoChange} 
+                accept="image/*" 
+                hidden 
+              />
               {photoFile && (
                 <Typography variant="body2" sx={{ mt: 1 }}>
-                  Archivo seleccionado: {photoFile.name}
+                  Nueva foto: {photoFile.name}
                 </Typography>
               )}
             </Box>
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancelar</Button>
+          <Button onClick={handleCloseEditDialog}>Cancelar</Button>
           <Button
-            onClick={currentUser?.id === 0 ? handleSave : handleUpdateUser}
+            onClick={handleUpdateUser}
             variant="contained"
             disabled={loading}
           >
-            {loading ? "Guardando..." : currentUser?.id === 0 ? "Registrar" : "Actualizar"}
+            {loading ? "Actualizando..." : "Actualizar"}
           </Button>
         </DialogActions>
       </Dialog>
