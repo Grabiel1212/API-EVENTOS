@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn --clear src/server.ts",
-   "build": "rm -rf ./dist && tsc && npx prisma generate",
+   "build": "npx prisma generate && rm -rf ./dist && tsc"
+,
    "start": "npm run build && node dist/server.js"
 
 

@@ -1,5 +1,4 @@
-
-import { PrismaClient } from '../../generated/prisma';
+import { categorias as CategoriaPrisma, PrismaClient } from '../../generated/prisma';
 import { Categorias } from '../../model/categorias/categorias';
 
 const prisma = new PrismaClient();
@@ -12,7 +11,7 @@ const prisma = new PrismaClient();
 export async function listarCategorias(): Promise<Categorias[]> {
   const categorias = await prisma.categorias.findMany();
 
-  return categorias.map(categoria => ({
+  return categorias.map((categoria: CategoriaPrisma) => ({
     id_categoria: Number(categoria.id_categoria),
     nombre: categoria.nombre,
     descripcion: categoria.descripcion ?? undefined,
