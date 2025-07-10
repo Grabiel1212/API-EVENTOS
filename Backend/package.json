@@ -3,12 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-"scripts": {
-  "build": "npx prisma generate && tsc",
-  "start": "npm run build && node dist/server.js",
-  "dev": "ts-node-dev --respawn --clear src/server.ts"
-},
-
+  "scripts": {
+    "build": "npx prisma generate && tsc && copyfiles -u 1 src/generated/**/* dist",
+    "start": "npm run build && node dist/server.js",
+    "dev": "ts-node-dev --respawn --clear src/server.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -23,6 +22,7 @@
     "@types/node": "^24.0.1",
     "@types/uuid": "^10.0.0",
     "@types/winston": "^2.4.4",
+    "copyfiles": "^2.4.1",
     "prisma": "^6.10.1",
     "rimraf": "^6.0.1",
     "ts-node-dev": "^2.0.0",
