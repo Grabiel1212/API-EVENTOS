@@ -194,3 +194,97 @@ Invalid value for argument `fecha_inicio`: premature end of input. Expected ISO-
 2025-07-07 23:52:57 [[31merror[39m]: Error al eliminar usuario:
 2025-07-07 23:53:44 [[31merror[39m]: Error al eliminar usuario:
 2025-07-08 00:21:23 [[31merror[39m]: Error al actualizar evento: Evento no encontrado
+2025-07-08 18:18:35 [[31merror[39m]: Error al buscar usuario por email:
+2025-07-08 22:21:33 [[31merror[39m]: Error al actualizar evento: 
+Invalid `prisma.eventos.update()` invocation in
+C:\Users\juang\Documents\Proyectos de NODE\PROYECTO FINAL\API-EVENTOS\Backend\src\services\eventos\updateEventos.ts:51:40
+
+  48 }
+  49 
+  50 // Actualizar evento
+→ 51 const updated = await prisma.eventos.update(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "23514", message: "el nuevo registro para la relación «eventos» viola la restricción «check» «eventos_check»", severity: "ERROR", detail: Some("La fila que falla contiene (1, Lima Pop Fest 2025, Festival de música pop con artistas nacionales e internacionale..., Estadio Nacional, Lima, Perú, 2025-08-04 00:00:00, 2025-08-04 00:00:00, 124.63, https://res.cloudinary.com/dcolydznr/image/upload/v1749697281/co..., 4, 2025-06-23 18:22:23.116832, 2025-07-08 22:21:33.28211)."), column: None, hint: None }), transient: false })
+2025-07-08 22:25:14 [[31merror[39m]: Error al actualizar evento: 
+Invalid `prisma.eventos.update()` invocation in
+C:\Users\juang\Documents\Proyectos de NODE\PROYECTO FINAL\API-EVENTOS\Backend\src\services\eventos\updateEventos.ts:51:40
+
+  48 }
+  49 
+  50 // Actualizar evento
+→ 51 const updated = await prisma.eventos.update(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "23514", message: "el nuevo registro para la relación «eventos» viola la restricción «check» «eventos_check»", severity: "ERROR", detail: Some("La fila que falla contiene (1, Lima Pop Fest 2025, Festival de música pop con artistas nacionales e internacionale..., Estadio Nacional, Lima, Perú, 2025-08-04 00:00:00, 2025-08-04 00:00:00, 124.63, https://res.cloudinary.com/dcolydznr/image/upload/v1749697281/co..., 4, 2025-06-23 18:22:23.116832, 2025-07-08 22:25:14.589441)."), column: None, hint: None }), transient: false })
+2025-07-08 23:05:34 [[31merror[39m]: Error al actualizar evento: 
+Invalid `prisma.eventos.update()` invocation in
+C:\Users\juang\Documents\Proyectos de NODE\PROYECTO FINAL\API-EVENTOS\Backend\src\services\eventos\updateEventos.ts:51:40
+
+  48 }
+  49 
+  50 // Actualizar evento
+→ 51 const updated = await prisma.eventos.update(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "23514", message: "el nuevo registro para la relación «eventos» viola la restricción «check» «eventos_check»", severity: "ERROR", detail: Some("La fila que falla contiene (1, Lima Pop Fest 2025, Festival de música pop con artistas nacionales e internacionale..., Estadio Nacional, Lima, Perú, 2025-08-04 00:00:00, 2025-08-04 00:00:00, 124.63, https://res.cloudinary.com/dcolydznr/image/upload/v1749697281/co..., 1, 2025-06-23 18:22:23.116832, 2025-07-08 23:05:34.243566)."), column: None, hint: None }), transient: false })
+2025-07-08 23:05:35 [[31merror[39m]: Error al actualizar evento: 
+Invalid `prisma.eventos.update()` invocation in
+C:\Users\juang\Documents\Proyectos de NODE\PROYECTO FINAL\API-EVENTOS\Backend\src\services\eventos\updateEventos.ts:51:40
+
+  48 }
+  49 
+  50 // Actualizar evento
+→ 51 const updated = await prisma.eventos.update(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "23514", message: "el nuevo registro para la relación «eventos» viola la restricción «check» «eventos_check»", severity: "ERROR", detail: Some("La fila que falla contiene (1, Lima Pop Fest 2025, Festival de música pop con artistas nacionales e internacionale..., Estadio Nacional, Lima, Perú, 2025-08-04 00:00:00, 2025-08-04 00:00:00, 124.63, https://res.cloudinary.com/dcolydznr/image/upload/v1749697281/co..., 1, 2025-06-23 18:22:23.116832, 2025-07-08 23:05:35.652138)."), column: None, hint: None }), transient: false })
+2025-07-08 23:05:36 [[31merror[39m]: Error al actualizar evento: 
+Invalid `prisma.eventos.update()` invocation in
+C:\Users\juang\Documents\Proyectos de NODE\PROYECTO FINAL\API-EVENTOS\Backend\src\services\eventos\updateEventos.ts:51:40
+
+  48 }
+  49 
+  50 // Actualizar evento
+→ 51 const updated = await prisma.eventos.update(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "23514", message: "el nuevo registro para la relación «eventos» viola la restricción «check» «eventos_check»", severity: "ERROR", detail: Some("La fila que falla contiene (1, Lima Pop Fest 2025, Festival de música pop con artistas nacionales e internacionale..., Estadio Nacional, Lima, Perú, 2025-08-04 00:00:00, 2025-08-04 00:00:00, 124.63, https://res.cloudinary.com/dcolydznr/image/upload/v1749697281/co..., 1, 2025-06-23 18:22:23.116832, 2025-07-08 23:05:36.931407)."), column: None, hint: None }), transient: false })
+2025-07-08 23:15:18 [[31merror[39m]: Error al actualizar evento: 
+Invalid `prisma.eventos.update()` invocation in
+C:\Users\juang\Documents\Proyectos de NODE\PROYECTO FINAL\API-EVENTOS\Backend\src\services\eventos\updateEventos.ts:51:40
+
+  48 }
+  49 
+  50 // Actualizar evento
+→ 51 const updated = await prisma.eventos.update(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "23514", message: "el nuevo registro para la relación «eventos» viola la restricción «check» «eventos_check»", severity: "ERROR", detail: Some("La fila que falla contiene (1, Lima Pop Fest 2025, Festival de música pop con artistas nacionales e internacionale..., Estadio Nacional, Lima, Perú, 2025-08-04 00:00:00, 2025-08-04 00:00:00, 124.63, https://res.cloudinary.com/dcolydznr/image/upload/v1749697281/co..., 1, 2025-06-23 18:22:23.116832, 2025-07-08 23:15:18.074669)."), column: None, hint: None }), transient: false })
+2025-07-09 21:08:31 [[31merror[39m]: Error en reporte general 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `42703`. Message: `no existe la columna u.id`
+2025-07-09 21:08:57 [[31merror[39m]: Error en resumen de usuarios 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `42703`. Message: `no existe la columna u.id`
+2025-07-09 21:09:16 [[31merror[39m]: Error en reportePorUsuario 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `42703`. Message: `no existe la columna u.id`
+2025-07-09 21:10:39 [[31merror[39m]: Error en reportePorUsuario 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Raw query failed. Code: `42703`. Message: `no existe la columna u.id`
+2025-07-09 21:10:47 [[31merror[39m]: Error en resumen de usuarios 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Raw query failed. Code: `42703`. Message: `no existe la columna u.id`
+2025-07-09 21:10:54 [[31merror[39m]: Error en reporte general 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Raw query failed. Code: `42703`. Message: `no existe la columna u.id`
+2025-07-09 21:12:03 [[31merror[39m]: Error en reporte general Do not know how to serialize a BigInt
+2025-07-09 21:12:12 [[31merror[39m]: Error en resumen de usuarios Do not know how to serialize a BigInt
+2025-07-09 21:12:16 [[31merror[39m]: Error en reportePorUsuario Do not know how to serialize a BigInt

@@ -25,7 +25,7 @@ export const useActualizarEvento = () => {
   const [estado, setEstado] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [mensaje, setMensaje] = useState<string>("");
 
-  const actualizarEvento = async (id: number, eventoData: ActualizarEventoData, token: string) => {
+  const actualizarEvento = async (id: number, eventoData: FormData, token: string) => {
     setEstado("loading");
     setMensaje("");
 
@@ -36,7 +36,7 @@ export const useActualizarEvento = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -54,5 +54,10 @@ export const useActualizarEvento = () => {
     }
   };
 
-  return { actualizarEvento, estado, mensaje };
+  // ✅ Este return es obligatorio
+  return {
+    actualizarEvento,
+    estado,
+    mensaje
+  };
 };

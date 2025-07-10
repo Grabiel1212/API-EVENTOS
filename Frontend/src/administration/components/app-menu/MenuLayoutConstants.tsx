@@ -1,7 +1,6 @@
-import EventIcon from '@mui/icons-material/Event';
-import CreditCardIcon from '@mui/icons-material/CreditCard';
-import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import CategoryIcon from '@mui/icons-material/Category';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import EventIcon from '@mui/icons-material/Event';
 import HomeIcon from '@mui/icons-material/Home';
 import PeopleIcon from '@mui/icons-material/People';
 
@@ -13,14 +12,32 @@ import type { User } from '../../interfaces/User';
 
 // Menú de navegación principal
 export const NAVIGATION: Navigation = [
-  { kind: 'header', title: 'Menu Principal' },
+  { kind: 'header', title: 'Menú Principal' },
   { segment: 'admin/home', title: 'Inicio', icon: <HomeIcon /> },
   { segment: 'admin/usuarios', title: 'Usuarios', icon: <PeopleIcon /> },
   { segment: 'admin/eventos', title: 'Eventos', icon: <EventIcon /> },
   { segment: 'admin/categorias', title: 'Categorías', icon: <CategoryIcon /> },
-  { segment: 'admin/pagos', title: 'Pagos', icon: <CreditCardIcon /> },
-  { segment: 'admin/registros', title: 'Registros', icon: <PersonAddAltIcon /> },
+  {
+    segment: '',
+    title: 'Reportes',
+    icon: <CreditCardIcon />,
+    children: [
+      {
+        segment: 'admin/reportes/general',
+        title: 'Reporte General',
+      },
+      {
+        segment: 'admin/reportes/usuarios',
+        title: 'Resumen por Usuario',
+      },
+      {
+        segment: 'admin/reportes/usuario',
+        title: 'Detalle por Usuario',
+      },
+    ],
+  },
 ];
+
 
 
 // Tema personalizado

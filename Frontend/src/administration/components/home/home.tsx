@@ -19,8 +19,8 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
-import { motion } from 'framer-motion'; // Importación corregida
-import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import React, { useEffect } from 'react';
 import {
   Area,
   AreaChart,
@@ -36,6 +36,11 @@ import {
   Tooltip,
   XAxis, YAxis
 } from 'recharts';
+
+// Importación de hooks personalizados
+import { useEventos } from '../../../services/eventos/useEventos';
+import { useReporteGeneral } from '../../../services/reportes/useReporteGeneral';
+import { useReporteResumen } from '../../../services/reportes/useReporteResumen';
 
 // Tipos de datos para TypeScript
 type MetricCardProps = {
@@ -79,52 +84,8 @@ const COLORS = {
   conference: '#ff6d00'
 };
 
-// Datos de ejemplo para eventos
-const eventsData: EventType[] = [
-  { 
-    id: 1, 
-    title: 'Festival de Verano', 
-    date: '15 Jul 2023', 
-    venue: 'Estadio Nacional', 
-    type: 'concert', 
-    ticketsSold: 12500, 
-    capacity: 20000, 
-    revenue: 375000 
-  },
-  { 
-    id: 2, 
-    title: 'Estreno: Guardianes de la Galaxia', 
-    date: '22 Jul 2023', 
-    venue: 'Cinepolis Mega', 
-    type: 'movie', 
-    ticketsSold: 480, 
-    capacity: 600, 
-    revenue: 7200 
-  },
-  { 
-    id: 3, 
-    title: 'Conferencia Tech 2023', 
-    date: '30 Jul 2023', 
-    venue: 'Centro de Convenciones', 
-    type: 'conference', 
-    ticketsSold: 850, 
-    capacity: 1000, 
-    revenue: 42500 
-  },
-  { 
-    id: 4, 
-    title: 'Tour Internacional: Coldplay', 
-    date: '5 Ago 2023', 
-    venue: 'Estadio Monumental', 
-    type: 'concert', 
-    ticketsSold: 45000, 
-    capacity: 50000, 
-    revenue: 2250000 
-  },
-];
-
-// Datos para gráficos
-const revenueData = [
+// Datos de ejemplo para gráficos (se usarán donde no haya datos reales)
+const revenueDataExample = [
   { name: 'Ene', value: 1250000 },
   { name: 'Feb', value: 1890000 },
   { name: 'Mar', value: 1420000 },
@@ -134,7 +95,7 @@ const revenueData = [
   { name: 'Jul', value: 2865000 },
 ];
 
-const attendanceData = [
+const attendanceDataExample = [
   { name: 'Lun', asistentes: 1240 },
   { name: 'Mar', asistentes: 1890 },
   { name: 'Mié', asistentes: 1420 },
@@ -446,46 +407,50 @@ const RecentActivity: React.FC = () => {
 const DashboardHome: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [activeEvents, setActiveEvents] = useState(eventsData);
-  const [totalRevenue, setTotalRevenue] = useState(0);
   
+  // Usar hooks personalizados
+  const { eventos: eventosReales, loading: loadingEventos, error: errorEventos } = useEventos();
+  const { reporte, loading: loadingReporte, error: errorReporte } = useReporteGeneral();
+  const { resumen, loading: loadingResumen, error: errorResumen } = useReporteResumen();
+
+  // Calcular métricas reales
+  const totalRevenue = reporte.reduce((sum, item) => sum + parseFloat(item.monto), 0);
+  const totalAttendees = reporte.reduce((sum, item) => sum + item.cantidad, 0);
+  const eventosActivos = eventosReales.length;
+
+  // Calcular ocupación (promedio de ocupación de eventos)
+  const ocupacionPromedio = 75; // Porcentaje fijo por ahora
+
+  // Formatear datos para gráficos
+  const revenueData = revenueDataExample;
+  const attendanceData = attendanceDataExample;
+
+  // Mapear eventos reales a la estructura de EventType para EventCard
+  const eventosParaMostrar: EventType[] = eventosReales.map(evento => ({
+    id: evento.id,
+    title: evento.titulo,
+    date: new Date(evento.fecha_inicio).toLocaleDateString('es-ES'),
+    venue: evento.ubicacion,
+    type: 'concert', // Por defecto
+    ticketsSold: 0, // No disponible
+    capacity: 100, // Valor por defecto
+    revenue: 0 // No disponible
+  }));
+
+  // Manejo de errores
   useEffect(() => {
-    // Calcular ingresos totales
-    const revenue = eventsData.reduce((sum, event) => sum + event.revenue, 0);
-    setTotalRevenue(revenue);
-    
-    // Animación para simular ventas en tiempo real
-    const interval = setInterval(() => {
-      setActiveEvents(prev => 
-        prev.map(event => {
-          if (event.ticketsSold < event.capacity && Math.random() > 0.7) {
-            const newTickets = Math.floor(Math.random() * 5) + 1;
-            const updatedTickets = Math.min(event.ticketsSold + newTickets, event.capacity);
-            return {
-              ...event,
-              ticketsSold: updatedTickets,
-              revenue: Math.round(updatedTickets * (event.revenue / event.ticketsSold))
-            };
-          }
-          return event;
-        })
-      );
-    }, 3000);
-    
-    return () => clearInterval(interval);
-  }, []);
-  
-  // Calcular asistentes totales
-  const totalAttendees = activeEvents.reduce((sum, event) => sum + event.ticketsSold, 0);
-  
+    if (errorEventos) console.error("Error en useEventos:", errorEventos);
+    if (errorReporte) console.error("Error en useReporteGeneral:", errorReporte);
+    if (errorResumen) console.error("Error en useReporteResumen:", errorResumen);
+  }, [errorEventos, errorReporte, errorResumen]);
+
   return (
-   // En DashboardHome
-<Box sx={{ 
-  backgroundColor: theme.palette.background.default, // Usar color del tema
-  minHeight: '100vh',
-  p: isMobile ? 1.5 : 3,
-  pt: 7
-}}>
+    <Box sx={{ 
+      backgroundColor: theme.palette.background.default,
+      minHeight: '100vh',
+      p: isMobile ? 1.5 : 3,
+      pt: 7
+    }}>
       {/* Barra superior */}
       <Paper sx={{ 
         position: 'fixed', 
@@ -504,7 +469,7 @@ const DashboardHome: React.FC = () => {
       }}>
         <Box display="flex" alignItems="center">
           <EventIcon sx={{ mr: 1.5, color: 'white' }} />
-          <Typography variant="h6" fontWeight={700} color="#000000">
+          <Typography variant="h6" fontWeight={700} color="white">
             EventMaster Dashboard
           </Typography>
         </Box>
@@ -564,7 +529,7 @@ const DashboardHome: React.FC = () => {
         <Box>
           <MetricCard 
             title="Ingresos Totales" 
-            value={`$${totalRevenue.toLocaleString()}`} 
+            value={`$${totalRevenue.toLocaleString('es-ES', { maximumFractionDigits: 2 })}`} 
             change={18.7} 
             icon={<TrendingUpIcon />}
             color={COLORS.success}
@@ -574,7 +539,7 @@ const DashboardHome: React.FC = () => {
         <Box>
           <MetricCard 
             title="Asistentes" 
-            value={totalAttendees.toLocaleString()} 
+            value={totalAttendees.toLocaleString('es-ES')} 
             change={12.3} 
             icon={<GroupIcon />}
             color={COLORS.info}
@@ -584,7 +549,7 @@ const DashboardHome: React.FC = () => {
         <Box>
           <MetricCard 
             title="Eventos Activos" 
-            value={activeEvents.length} 
+            value={eventosActivos} 
             change={5.2} 
             icon={<EventIcon />}
             color={COLORS.warning}
@@ -594,7 +559,7 @@ const DashboardHome: React.FC = () => {
         <Box>
           <MetricCard 
             title="Ocupación" 
-            value={`${Math.round((totalAttendees / activeEvents.reduce((sum, e) => sum + e.capacity, 0)) * 100)}%`} 
+            value={`${ocupacionPromedio}%`} 
             change={3.8} 
             icon={<TicketIcon />}
             color={COLORS.primary}
@@ -618,11 +583,9 @@ const DashboardHome: React.FC = () => {
             }}>
               
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-
-                <Typography variant="h6" color='#000000' fontWeight={700}>
+                <Typography variant="h6" fontWeight={700} color="#000000">
                   Ingresos Mensuales
                 </Typography>
-
                 <Button variant="outlined" size="small" color="primary">
                   Ver Reporte
                 </Button>
@@ -749,11 +712,11 @@ const DashboardHome: React.FC = () => {
                 <Typography variant="h6" fontWeight={700} color="#000000">
                   Eventos Activos
                 </Typography>
-                <Chip label={`${activeEvents.length} eventos`} color="primary" size="small" />
+                <Chip label={`${eventosParaMostrar.length} eventos`} color="primary" size="small" />
               </Box>
               <Box>
-                {activeEvents.map(event => (
-                  <EventCard key={event.id} event={event} />
+                {eventosParaMostrar.map(evento => (
+                  <EventCard key={evento.id} event={evento} />
                 ))}
               </Box>
             </Paper>

@@ -3,11 +3,15 @@ import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import CategoriaTablaPage from '../administration/components/app-categoria/app-categoria';
 import EventoTablaPage from '../administration/components/app-eventos/app-eventos';
-import PagosTablaPage from '../administration/components/app-pagos/app-pagos';
-import RegistrosTablaPage from '../administration/components/app-registros/app-registros';
 import UserTablePage from '../administration/components/app-usuario/appUser';
 import HomeAdmin from '../administration/components/home/home';
 import AdminLayout from '../administration/layouts/AdminLayout';
+
+import ReporteDetallado from '../administration/components/app-ReporteDetallado/app-ReporteDetallado';
+import ReporteGeneral from '../administration/components/app-reporteGeneral/app-ReporteGeneral';
+import ReportePorUsuario from '../administration/components/app-reporteUsuario/app-ReporteUsuario';
+
+
 import { useAuth } from '../hooks/useAuth';
 
 import CompraUser from '../user/components/app-compra/AppCompraContainer';
@@ -35,7 +39,7 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-    <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<LandingPage />} />
 
 
       {/* Rutas usuario */}
@@ -64,8 +68,10 @@ const AppRoutes: React.FC = () => {
         <Route path="usuarios" element={<UserTablePage />} />
         <Route path="categorias" element={<CategoriaTablaPage />} />
         <Route path="eventos" element={<EventoTablaPage />} />
-        <Route path="pagos" element={<PagosTablaPage />} />
-        <Route path="registros" element={<RegistrosTablaPage />} />
+        {/* 📊 Nuevas rutas para reportes */}
+        <Route path="reportes/general" element={<ReporteGeneral />} />
+        <Route path="reportes/usuarios" element={<ReporteDetallado />} />
+        <Route path="reportes/usuario" element={<ReportePorUsuario />} />
       </Route>
 
       <Route path="*" element={<div>404 Página no encontrada</div>} />

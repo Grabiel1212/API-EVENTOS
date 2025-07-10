@@ -25,21 +25,17 @@ export const useCrearEvento = () => {
   const [estado, setEstado] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [mensaje, setMensaje] = useState<string>("");
 
-  const crearEvento = async (eventoData: CrearEventoData, token: string) => {
+  const crearEvento = async (eventoData: FormData, token: string) => {
     setEstado("loading");
     setMensaje("");
 
     try {
-      const response = await axios.post<EventoResponse>(
-        `${baseUrl}/evento/crear`,
-        eventoData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.post(`${baseUrl}/evento/crear`, eventoData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (response.data.success) {
         setEstado("success");
@@ -54,5 +50,5 @@ export const useCrearEvento = () => {
     }
   };
 
-  return { crearEvento, estado, mensaje };
+  return { crearEvento, estado, mensaje }; // ✅ ¡ESTO ES CRUCIAL!
 };
