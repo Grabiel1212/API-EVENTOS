@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-     "build": "npx prisma generate && tsc && node dist/copy-generated.js",
+    "build": "npx prisma generate && tsc && node dist/copy-generated.js",
     "start": "npm run build && node dist/server.js",
     "dev": "ts-node-dev --respawn --clear src/server.ts"
   },
