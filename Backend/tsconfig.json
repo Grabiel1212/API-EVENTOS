@@ -113,7 +113,8 @@
     "types": ["node", "express"],
     "skipLibCheck": true
   },
-   "include": ["src/**/*"],
+   "include": ["src/**/*", "copy-generated.ts"],
+
   "exclude": ["node_modules"],
     "target": "es2019",
     "module": "commonjs",
