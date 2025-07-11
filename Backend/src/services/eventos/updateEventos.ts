@@ -1,4 +1,4 @@
-import { PrismaClient } from '../../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import { Eventos } from '../../model/eventos/eventos';
 import { deletePhotoFromCloudinary, extractPublicIdEventos, uploadToCloudinaryEventos } from '../cloudinary/cloudinaryService';
 

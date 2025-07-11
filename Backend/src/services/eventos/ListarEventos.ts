@@ -1,7 +1,10 @@
-import { PrismaClient } from '../../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import { Eventos } from '../../model/eventos/eventos';
 
 const prisma = new PrismaClient();
+
+// ✅ Tipo seguro (sin null)
+type EventoPrisma = NonNullable<Awaited<ReturnType<typeof prisma.eventos.findFirst>>>;
 
 /**
  * Lista todos los eventos almacenados en la base de datos.
@@ -11,7 +14,7 @@ const prisma = new PrismaClient();
 export async function listarEventos(): Promise<Eventos[]> {
   const eventos = await prisma.eventos.findMany();
 
-  return eventos.map(evento => ({
+  return eventos.map((evento: EventoPrisma) => ({
     id: Number(evento.id_evento),
     titulo: evento.titulo,
     descripcion: evento.descripcion ?? undefined,

@@ -1,8 +1,8 @@
-import { PrismaClient } from '../../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import { ApiError } from '../../helpers/ApiError';
 import {
-    STATUS_FORBIDDEN,
-    STATUS_NOT_FOUND
+  STATUS_FORBIDDEN,
+  STATUS_NOT_FOUND
 } from '../../helpers/status';
 
 const prisma = new PrismaClient();

@@ -1,12 +1,12 @@
 
-import { PrismaClient } from '../../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import { Categorias } from '../../model/categorias/categorias';
 
 import { ApiError } from '../../helpers/ApiError';
 import {
   STATUS_BAD_REQUEST,
-  STATUS_NOT_FOUND,
-  STATUS_INTERNAL_SERVER_ERROR
+  STATUS_INTERNAL_SERVER_ERROR,
+  STATUS_NOT_FOUND
 } from '../../helpers/status';
 
 const prisma = new PrismaClient();

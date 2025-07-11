@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model categorias {
+  id_categoria     BigInt    @id @default(autoincrement())
+  nombre           String    @unique @db.VarChar(100)
+  descripcion      String?
+  creado_categoria DateTime? @default(now()) @db.Timestamp(6)
+  eventos          eventos[]
+
+  
+  @@map("categorias") // <--- esto le dice a Prisma que la tabla en la BD se llama "categorias"
+  
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model eventos {
+  id_evento          BigInt      @id @default(autoincrement())
+  titulo             String      @db.VarChar(100)
+  descripcion        String?
+  ubicacion          String?     @db.VarChar(150)
+  fecha_inicio       DateTime    @db.Timestamp(6)
+  fecha_fin          DateTime    @db.Timestamp(6)
+  precio             Decimal?    @default(0.00) @db.Decimal(10, 2)
+  imagen             String?     @db.VarChar(200)
+  id_categoria       BigInt
+  creado_evento      DateTime?   @default(now()) @db.Timestamp(6)
+  actualizado_evento DateTime?   @default(now()) @db.Timestamp(6)
+  categorias         categorias  @relation(fields: [id_categoria], references: [id_categoria], onDelete: NoAction, onUpdate: NoAction)
+  registros          registros[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model pagos {
+  id_pago     BigInt      @id @default(autoincrement())
+  id_usuario  BigInt?
+  monto       Decimal     @db.Decimal(10, 2)
+  metodo_pago String      @default("Visa") @db.VarChar(50)
+  estado_pago String?     @default("PAGADO") @db.VarChar(20)
+  fecha_pago  DateTime?   @default(now()) @db.Timestamp(6)
+  usuarios    usuarios?   @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+  registros   registros[]
+}
+
+model registros {
+  id_registro    BigInt    @id @default(autoincrement())
+  id_usuario     BigInt
+  id_evento      BigInt
+  id_pago        BigInt
+  cantidad       Int       @default(1)
+  fecha_registro DateTime? @default(now()) @db.Timestamp(6)
+  eventos        eventos   @relation(fields: [id_evento], references: [id_evento], onDelete: NoAction, onUpdate: NoAction)
+  pagos          pagos     @relation(fields: [id_pago], references: [id_pago], onDelete: NoAction, onUpdate: NoAction)
+  usuarios       usuarios  @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model usuarios {
+  id_usuario  BigInt      @id @default(autoincrement())
+  nombre      String?     @db.VarChar(100)
+  apellidos   String?     @db.VarChar(100)
+  foto_perfil String?     @db.VarChar(500)
+  correo      String      @unique @db.VarChar(100)
+  contrasena  String?     @db.VarChar(100)
+  google_id   String?     @unique @db.VarChar(100)
+  activo      Boolean?    @default(true)
+  rol         String?     @default("USUARIO") @db.VarChar(10)
+  creado_en   DateTime?   @default(now()) @db.Timestamp(6)
+  pagos       pagos[]
+  registros   registros[]
+}

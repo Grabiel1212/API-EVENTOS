@@ -1,7 +1,10 @@
-import { categorias as CategoriaPrisma, PrismaClient } from '../../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import { Categorias } from '../../model/categorias/categorias';
 
 const prisma = new PrismaClient();
+
+// ✅ Tipo de una categoría según Prisma
+type CategoriaPrisma = NonNullable<Awaited<ReturnType<typeof prisma.categorias.findFirst>>>;
 
 /**
  * Lista todas las categorías almacenadas en la base de datos.

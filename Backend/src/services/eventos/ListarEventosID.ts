@@ -1,4 +1,4 @@
-import { PrismaClient } from '../../generated/prisma'; // ✅ Asegúrate de importar esto
+import { PrismaClient } from '@prisma/client'; // ✅ Asegúrate de importar esto
 import { Eventos } from '../../model/eventos/eventos';
 
 const prisma = new PrismaClient();

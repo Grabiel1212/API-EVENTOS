@@ -1,5 +1,5 @@
+import { Prisma, PrismaClient } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
-import { Prisma, PrismaClient } from '../../generated/prisma';
 import { PagoConRegistroInput } from './dto';
 
 const prisma = new PrismaClient();

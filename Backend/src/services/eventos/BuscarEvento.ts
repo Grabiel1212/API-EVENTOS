@@ -1,8 +1,11 @@
+import { PrismaClient } from '@prisma/client';
 import Fuse from 'fuse.js';
-import { PrismaClient } from '../../generated/prisma';
 import { Eventos } from '../../model/eventos/eventos';
 
 const prisma = new PrismaClient();
+
+// ✅ Tipo seguro sin null
+type EventoPrisma = NonNullable<Awaited<ReturnType<typeof prisma.eventos.findFirst>>>;
 
 /**
  * Busca eventos por nombre con coincidencia parcial e insensible a mayúsculas/minúsculas.
@@ -13,24 +16,28 @@ const prisma = new PrismaClient();
 export async function buscarEventosPorNombre(nombre: string): Promise<Eventos[]> {
   const eventos = await prisma.eventos.findMany();
 
-    const fuse = new Fuse(eventos, {
+  const fuse = new Fuse<EventoPrisma>(eventos, {
     keys: ['titulo'],
     threshold: 0.4,
   });
 
-    const resultado = fuse.search(nombre);
+  const resultado = fuse.search(nombre);
 
-   return resultado.map(({ item }) => ({
-    id: Number(item.id_evento),
-    titulo: item.titulo,
-    descripcion: item.descripcion ?? '',
-    ubicacion: item.ubicacion ?? '',
-    fecha_inicio: item.fecha_inicio,
-    fecha_fin: item.fecha_fin,
-    precio: Number(item.precio) || 0,
-    imagen: item.imagen ?? '',
-    id_categoria: Number(item.id_categoria),
-    creado_evento: item.creado_evento ?? new Date(),
-    actualizado_evento: item.actualizado_evento ?? new Date()
-  }));
+  return resultado.map(({ item }) => {
+    const evento = item as EventoPrisma; // 👈 aseguramos que no es null
+
+    return {
+      id: Number(evento.id_evento),
+      titulo: evento.titulo,
+      descripcion: evento.descripcion ?? '',
+      ubicacion: evento.ubicacion ?? '',
+      fecha_inicio: evento.fecha_inicio,
+      fecha_fin: evento.fecha_fin,
+      precio: Number(evento.precio) || 0,
+      imagen: evento.imagen ?? '',
+      id_categoria: Number(evento.id_categoria),
+      creado_evento: evento.creado_evento ?? new Date(),
+      actualizado_evento: evento.actualizado_evento ?? new Date(),
+    };
+  });
 }

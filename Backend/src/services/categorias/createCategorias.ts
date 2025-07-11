@@ -1,4 +1,5 @@
-import { PrismaClient } from '../../generated/prisma';
+import { PrismaClient } from '@prisma/client';
+
 import { ApiError } from '../../helpers/ApiError';
 import { STATUS_BAD_REQUEST, STATUS_FORBIDDEN, STATUS_INTERNAL_SERVER_ERROR } from "../../helpers/status";
 import { Categorias } from '../../model/categorias/categorias';

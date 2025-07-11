@@ -1,4 +1,4 @@
-import { PrismaClient } from '../../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import { ApiError } from '../../helpers/ApiError';
 import { STATUS_NOT_FOUND } from '../../helpers/status';
 import { Users } from '../../model/usuarios/users';

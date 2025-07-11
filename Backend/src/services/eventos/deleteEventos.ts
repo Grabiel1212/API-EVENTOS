@@ -1,4 +1,4 @@
-import { PrismaClient } from '../../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import { deletePhotoFromCloudinary, extractPublicIdEventos } from '../cloudinary/cloudinaryService';
 
 const prisma = new PrismaClient();
