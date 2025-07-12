@@ -1,6 +1,3 @@
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
 import {
   Box,
   Button,
@@ -10,6 +7,7 @@ import {
   DialogTitle,
   IconButton,
   Paper,
+  Snackbar,
   Stack,
   Table,
   TableBody,
@@ -19,37 +17,42 @@ import {
   TableRow,
   TextField,
   Typography,
+  Alert,
 } from "@mui/material";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import dayjs from "dayjs";
 import { useState } from "react";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
+import { useAgregarCategoria } from "../../../services/categorias/useCategoriaAgregar";
+import { useActualizarCategoria, type CategoriaUpdate } from "../../../services/categorias/useCategoriaActualizar";
+import { useCategorias } from "../../../services/categorias/useCategorias";
 
-interface Categoria {
-  id: number;
-  nombre: string; // FESTIVALES - CONCIERTOS - TEATROS- DEPORTES- CONFERENCIAS
+interface CategoriaLocal {
+  id_categoria: number;
+  nombre: string;
   descripcion: string;
   creado_categoria: Date;
 }
 
 export default function Categoria() {
-  const [categorias, setCategorias] = useState<Categoria[]>([
-    {
-      id: 1,
-      nombre: "FESTIVALES",
-      descripcion: "holi",
-      creado_categoria: new Date("11/06/2025"),
-    },
-  ]);
-
+  const { categorias, refetch } = useCategorias();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<Categoria | null>(null);
+  const [currentUser, setCurrentUser] = useState<CategoriaLocal | null>(null);
 
-  const handleOpenDialog = (categoria?: Categoria) => {
+  const { agregarCategoria } = useAgregarCategoria();
+  const { actualizarCategoria } = useActualizarCategoria();
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [mensaje, setMensaje] = useState<string>("");
+  const [estado, setEstado] = useState<"success" | "error">("success");
+
+  const handleOpenDialog = (categoria?: CategoriaLocal) => {
     setCurrentUser(
       categoria ?? {
-        id: 0,
+        id_categoria: 0,
         nombre: "",
         descripcion: "",
         creado_categoria: new Date(),
@@ -63,25 +66,66 @@ export default function Categoria() {
     setCurrentUser(null);
   };
 
-  const handleSave = () => {
-    if (!currentUser) return;
-    setCategorias((prev) => {
-      const exists = prev.some((u) => u.id === currentUser.id);
-      return exists
-        ? prev.map((u) => (u.id === currentUser.id ? currentUser : u))
-        : [
-            ...prev,
-            {
-              ...currentUser,
-              id: prev.length ? Math.max(...prev.map((u) => u.id)) + 1 : 1,
-            },
-          ];
-    });
-    handleCloseDialog();
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
-  const handleDelete = (id: number) => {
-    setCategorias((prev) => prev.filter((u) => u.id !== id));
+  const handleSave = async () => {
+    if (!currentUser) return;
+
+    const esNueva = currentUser.id_categoria === 0;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setMensaje("No se encontró un token. Por favor, inicia sesión.");
+      setEstado("error");
+      setSnackbarOpen(true);
+      return;
+    }
+
+    if (esNueva) {
+      const nuevaCategoria = {
+        nombre: currentUser.nombre,
+        descripcion: currentUser.descripcion,
+      };
+
+      const resultado = await agregarCategoria(nuevaCategoria, token);
+
+      if (resultado) {
+        await refetch();
+        setMensaje("Categoría agregada exitosamente.");
+        setEstado("success");
+        handleCloseDialog();
+      } else {
+        setMensaje("Error al agregar categoría.");
+        setEstado("error");
+      }
+
+      setSnackbarOpen(true);
+    } else {
+      const updateData: CategoriaUpdate = {
+        id: currentUser.id_categoria,
+        nombre: currentUser.nombre,
+        descripcion: currentUser.descripcion,
+      };
+
+      const actualizado = await actualizarCategoria(updateData);
+      if (actualizado) {
+        await refetch();
+        setMensaje("Categoría actualizada exitosamente.");
+        setEstado("success");
+        handleCloseDialog();
+      } else {
+        setMensaje("Error al actualizar categoría.");
+        setEstado("error");
+      }
+
+      setSnackbarOpen(true);
+    }
+  };
+
+  const handleDelete = (id_categoria: number) => {
+    // Tu lógica de eliminación aquí si tienes implementado DELETE
+    console.log("Eliminar categoría con ID:", id_categoria);
   };
 
   return (
@@ -93,56 +137,49 @@ export default function Categoria() {
         mb={3}
       >
         <Typography variant="h4" fontWeight="bold">
-          Gestión de Categorias
+          Gestión de Categorías
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
         >
-          Agregar Categoria
+          Agregar Categoría
         </Button>
       </Stack>
 
-      <TableContainer
-        component={Paper}
-        elevation={4}
-        sx={{ borderRadius: 3, overflow: "hidden" }}
-      >
+      <TableContainer component={Paper} elevation={4} sx={{ borderRadius: 3 }}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>
-                <strong>Nombre</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Descripcion</strong>
-              </TableCell>
-              <TableCell>
-                <strong>creado_categoria</strong>
-              </TableCell>
-              <TableCell align="right">
-                <strong>Acciones</strong>
-              </TableCell>
+              <TableCell><strong>Nombre</strong></TableCell>
+              <TableCell><strong>Descripción</strong></TableCell>
+              <TableCell><strong>Fecha de creación</strong></TableCell>
+              <TableCell align="right"><strong>Acciones</strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {categorias.map((Categoria) => (
-              <TableRow key={Categoria.id}>
-                <TableCell>{Categoria.nombre}</TableCell>
-                <TableCell>{Categoria.descripcion}</TableCell>
+            {categorias.map((categoria) => (
+              <TableRow key={categoria.id_categoria}>
+                <TableCell>{categoria.nombre}</TableCell>
+                <TableCell>{categoria.descripcion}</TableCell>
                 <TableCell>
-                  {Categoria.creado_categoria.toLocaleDateString()}
+                  {new Date(categoria.creado_categoria).toLocaleDateString()}
                 </TableCell>
                 <TableCell align="right">
                   <IconButton
-                    onClick={() => handleOpenDialog(Categoria)}
+                    onClick={() =>
+                      handleOpenDialog({
+                        ...categoria,
+                        creado_categoria: new Date(categoria.creado_categoria),
+                      })
+                    }
                     color="primary"
                   >
                     <EditIcon />
                   </IconButton>
                   <IconButton
-                    onClick={() => handleDelete(Categoria.id)}
+                    onClick={() => handleDelete(categoria.id_categoria)}
                     color="error"
                   >
                     <DeleteIcon />
@@ -152,9 +189,9 @@ export default function Categoria() {
             ))}
             {categorias.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                <TableCell colSpan={4} align="center" sx={{ py: 3 }}>
                   <Typography variant="body1" color="text.secondary">
-                    No hay Categorias registradas.
+                    No hay categorías registradas.
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -163,16 +200,11 @@ export default function Categoria() {
         </Table>
       </TableContainer>
 
-      <Dialog
-        open={dialogOpen}
-        onClose={handleCloseDialog}
-        fullWidth
-        maxWidth="sm"
-      >
+      <Dialog open={dialogOpen} onClose={handleCloseDialog} fullWidth maxWidth="sm">
         <DialogTitle>
-          {currentUser && categorias.some((u) => u.id === currentUser.id)
-            ? "Editar Categoria"
-            : "Agregar Categoria"}
+          {currentUser && currentUser.id_categoria !== 0
+            ? "Editar Categoría"
+            : "Agregar Categoría"}
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
@@ -182,42 +214,34 @@ export default function Categoria() {
               variant="outlined"
               value={currentUser?.nombre ?? ""}
               onChange={(e) =>
-                setCurrentUser(
-                  (prev) => prev && { ...prev, nombre: e.target.value }
-                )
+                setCurrentUser((prev) => prev && { ...prev, nombre: e.target.value })
               }
             />
             <TextField
-              label="Descricpion"
+              label="Descripción"
               fullWidth
               variant="outlined"
               value={currentUser?.descripcion ?? ""}
               onChange={(e) =>
-                setCurrentUser(
-                  (prev) => prev && { ...prev, descripcion: e.target.value }
-                )
+                setCurrentUser((prev) => prev && { ...prev, descripcion: e.target.value })
               }
             />
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
-                label="Creado_Categoria"
-                value={
-                  currentUser?.creado_categoria
-                    ? dayjs(currentUser.creado_categoria)
-                    : null
-                }
+                label="Fecha de creación"
+                value={currentUser?.creado_categoria ? dayjs(currentUser.creado_categoria) : null}
                 onChange={(newValue) => {
                   setCurrentUser(
-                                      (prev) =>
-                                        prev && {
-                                          ...prev,
-                                          creado_categoria: newValue ? newValue.toDate() : prev.creado_categoria,
-                                        }
-                                    );
+                    (prev) =>
+                      prev && {
+                        ...prev,
+                        creado_categoria: newValue
+                          ? newValue.toDate()
+                          : prev.creado_categoria,
+                      }
+                  );
                 }}
-                slotProps={{
-                  textField: { fullWidth: true, variant: "outlined" },
-                }}
+                slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
               />
             </LocalizationProvider>
           </Stack>
@@ -229,6 +253,21 @@ export default function Categoria() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={estado === "success" ? "success" : "error"}
+          sx={{ width: "100%" }}
+        >
+          {mensaje}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

@@ -64,7 +64,6 @@ const mapUsuarioToUser = (u: any): User => ({
 });
 
 export default function UserApp() {
-
   const [viewMode, setViewMode] = useState<"normales" | "administradores" | "inactivos" | "individual">("normales");
   const [searchId, setSearchId] = useState<string>("");
   const [users, setUsers] = useState<User[]>([]);
@@ -97,6 +96,24 @@ export default function UserApp() {
   const { actualizarUsuario } = useActualizarAdmin();
   const { eliminarUsuario } = useEliminarUsuario();
   const { actualizarEstado } = useActualizarEstadoUsuario();
+
+  // Función para refrescar la vista actual
+  const refreshCurrentView = () => {
+    switch (viewMode) {
+      case "normales":
+        normales.refetch();
+        break;
+      case "administradores":
+        administradores.refetch();
+        break;
+      case "inactivos":
+        inactivos.refetch();
+        break;
+      case "individual":
+        usuarioIndividual.refetch();
+        break;
+    }
+  };
 
   useEffect(() => {
     switch (viewMode) {
@@ -160,7 +177,7 @@ export default function UserApp() {
       
       if (result) {
         setSuccess("Usuario activado correctamente");
-        setUsers(prev => prev.map(u => u.id === id ? { ...u, active: true } : u));
+        refreshCurrentView(); // Actualiza la lista
       } else {
         setError("Error al activar usuario");
       }
@@ -181,7 +198,7 @@ export default function UserApp() {
       
       if (result) {
         setSuccess("Usuario eliminado correctamente");
-        setUsers(prev => prev.filter(u => u.id !== id));
+        refreshCurrentView(); // Actualiza la lista
       } else {
         setError("Error al eliminar usuario");
       }
@@ -218,15 +235,7 @@ export default function UserApp() {
 
       if (result.success) {
         setSuccess("Usuario actualizado correctamente");
-        setUsers(prev => prev.map(u => 
-          u.id === currentUser.id ? { 
-            ...u, 
-            name: currentUser.name,
-            lastname: currentUser.lastname,
-            rol: currentUser.rol.toUpperCase(),
-            ...(photoFile && { photo: URL.createObjectURL(photoFile) })
-          } : u
-        ));
+        refreshCurrentView(); // Actualiza la lista
         handleCloseEditDialog();
       } else {
         setError(result.message);
@@ -265,7 +274,7 @@ export default function UserApp() {
 
       if (response.success) {
         setSuccess("Usuario registrado correctamente");
-        setUsers(prev => [...prev, mapUsuarioToUser(response.data)]);
+        refreshCurrentView(); // Actualiza la lista
         handleCloseAddDialog();
       } else {
         setError(response.message || "Error al registrar usuario");
